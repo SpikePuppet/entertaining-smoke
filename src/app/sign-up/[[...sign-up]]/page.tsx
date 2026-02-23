@@ -1,7 +1,7 @@
-import { SignIn } from "@clerk/nextjs";
+import { SignUp } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 
-export default function SignInPage() {
+export default function SignUpPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-950">
       <div className="flex flex-col items-center gap-8">
@@ -9,9 +9,10 @@ export default function SignInPage() {
           <h1 className="text-3xl font-bold text-zinc-100">Ground Karate</h1>
           <p className="mt-1 text-zinc-400">BJJ Training Journal</p>
         </div>
-        <SignIn
-          signUpUrl="/sign-up"
-          fallbackRedirectUrl="/"
+        <SignUp
+          signInUrl="/sign-in"
+          forceRedirectUrl="/profile"
+          fallbackRedirectUrl="/profile"
           appearance={{
             baseTheme: dark,
             variables: {
@@ -25,8 +26,7 @@ export default function SignInPage() {
             },
             elements: {
               card: "border border-zinc-800 shadow-none",
-              formButtonPrimary:
-                "bg-zinc-100 text-zinc-900 hover:bg-white",
+              formButtonPrimary: "bg-zinc-100 text-zinc-900 hover:bg-white",
             },
           }}
         />

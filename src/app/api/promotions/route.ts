@@ -26,6 +26,7 @@ export async function GET() {
     .select("*")
     .eq("user_id", userId)
     .order("date", { ascending: false })
+    .order("created_at", { ascending: false })
     .returns<PromotionRow[]>();
 
   if (error) {

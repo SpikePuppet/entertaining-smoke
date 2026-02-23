@@ -28,6 +28,11 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInFallbackRedirectUrl="/"
+      signUpForceRedirectUrl="/profile"
+      signUpFallbackRedirectUrl="/profile"
       appearance={{
         baseTheme: dark,
         variables: {

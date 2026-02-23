@@ -24,7 +24,13 @@ export default function PromotionsPage() {
       try {
         const p = await getPromotions();
         if (!isMounted) return;
-        setPromotions(p.sort((a, b) => b.date.localeCompare(a.date)));
+        setPromotions(
+          [...p].sort((a, b) => {
+            const dateDiff = b.date.localeCompare(a.date);
+            if (dateDiff !== 0) return dateDiff;
+            return b.createdAt.localeCompare(a.createdAt);
+          })
+        );
       } catch {
         if (!isMounted) return;
         setLoadError("We couldn't load your promotions right now.");

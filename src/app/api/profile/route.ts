@@ -4,7 +4,10 @@ import type { BeltColor } from "@/lib/types";
 import { errorResponse } from "@/lib/api/error-response";
 import { validateSameOrigin } from "@/lib/security/origin";
 import { mapProfileRow, type ProfileRow } from "@/lib/supabase/mappers";
-import { createClerkSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  createClerkSupabaseServerClient,
+  createSupabaseServiceRoleClient,
+} from "@/lib/supabase/server";
 
 type CreateProfileBody = {
   name: string;
@@ -16,6 +19,20 @@ type CreateProfileBody = {
 type UpdateProfileBody = Partial<
   Pick<CreateProfileBody, "name" | "academyName" | "currentBelt" | "currentStripes">
 >;
+
+function buildInitialPromotionPayload(
+  userId: string,
+  belt: string,
+  stripes: number
+) {
+  return {
+    user_id: userId,
+    belt,
+    stripes,
+    date: new Date().toISOString().slice(0, 10),
+    notes: "Auto-created from profile creation.",
+  };
+}
 
 export async function GET() {
   const { userId } = await auth();
@@ -75,18 +92,31 @@ export async function POST(request: Request) {
     return errorResponse("Failed to create profile.", 500, error);
   }
 
-  const { error: promotionError } = await supabase.from("promotions").insert({
-    user_id: userId,
-    belt: payload.current_belt,
-    stripes: payload.current_stripes,
-    date: new Date().toISOString().slice(0, 10),
-    notes: "Auto-created from profile creation.",
-  });
+  const initialPromotionPayload = buildInitialPromotionPayload(
+    userId,
+    payload.current_belt,
+    payload.current_stripes
+  );
+  const { error: promotionError } = await supabase
+    .from("promotions")
+    .insert(initialPromotionPayload);
 
   if (promotionError) {
-    // Keep profile and promotion history in sync for first-time setup.
-    await supabase.from("profiles").delete().eq("id", userId);
-    return errorResponse("Failed to create initial promotion.", 500, promotionError);
+    const serviceRoleClient = createSupabaseServiceRoleClient();
+    if (serviceRoleClient) {
+      const { error: serviceRolePromotionError } = await serviceRoleClient
+        .from("promotions")
+        .insert(initialPromotionPayload);
+
+      if (serviceRolePromotionError) {
+        console.error("Failed to create initial promotion.", {
+          primaryError: promotionError,
+          serviceRoleError: serviceRolePromotionError,
+        });
+      }
+    } else {
+      console.error("Failed to create initial promotion.", promotionError);
+    }
   }
 
   return NextResponse.json(mapProfileRow(data), { status: 201 });

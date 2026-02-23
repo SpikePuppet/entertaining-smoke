@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id             String          @id @default(dbgenerated("(auth.jwt() ->> 'sub'::text)")) // Clerk user ID
+  name           String
+  academyName    String?         @map("academy_name")
+  currentBelt    String          @default("white")  @map("current_belt")
+  currentStripes Int             @default(0)        @map("current_stripes")
+  createdAt      DateTime        @default(now())    @map("created_at")
+  journalEntries JournalEntry[]
+  promotions     Promotion[]
+
+  @@map("profiles")
+}
+
+model JournalEntry {
+  id             String   @id @default(uuid())
+  user           Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String   @default(dbgenerated("(auth.jwt() ->> 'sub'::text)")) @map("user_id")
+  title          String
+  description    String   @default("")
+  highlightMoves String   @default("")  @map("highlight_moves")
+  whatWentRight  String   @default("")  @map("what_went_right")
+  whatToImprove  String   @default("")  @map("what_to_improve")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("journal_entries")
+}
+
+model Promotion {
+  id        String   @id @default(uuid())
+  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @default(dbgenerated("(auth.jwt() ->> 'sub'::text)")) @map("user_id")
+  belt      String
+  stripes   Int      @default(0)
+  date      DateTime @db.Date
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("promotions")
+}

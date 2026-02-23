@@ -43,23 +43,34 @@ src/app/
 
 The `(app)` group doesn't affect URLs — all routes remain at `/`, `/journal`, etc. The sign-in page renders without the sidebar since it's outside the `(app)` group. Authenticated pages inherit the sidebar from `src/app/(app)/layout.tsx`.
 
+### Database: Supabase + Prisma ORM
+
+The app uses Supabase (hosted Postgres) as its database, managed through Prisma ORM (v7.x) for schema definition, migrations, and type-safe queries.
+
+- **`prisma/schema.prisma`** defines three models: `Profile`, `JournalEntry`, `Promotion`
+- **`prisma.config.ts`** configures the datasource URL for CLI commands (migrations use `DIRECT_URL` to bypass PgBouncer)
+- **`src/lib/prisma.ts`** exports a singleton `PrismaClient` using the `@prisma/adapter-pg` driver adapter (required by Prisma 7.x)
+- **`src/generated/prisma/`** contains the generated type-safe client (gitignored, regenerated via `bun run db:generate`)
+
+Key Prisma 7.x details:
+- The `PrismaClient` constructor requires a driver adapter (`PrismaPg` from `@prisma/adapter-pg`)
+- Import path is `@/generated/prisma/client` (not `@prisma/client`)
+- CLI commands must use `bunx --bun` to load `.env` automatically (convenience scripts in `package.json`)
+- `Profile.id` is the Clerk user ID (not auto-generated) — identity comes from Clerk
+
 ### Client Components Throughout
 
-Every page is marked `"use client"`. This is intentional:
+Every page is currently marked `"use client"`. This was originally because all data lived in localStorage. TipTap editors also require browser DOM. As the storage layer migrates to server-side Prisma queries, data-fetching pages can become Server Components while editor-heavy pages remain client-side.
 
-- All data lives in localStorage, which is a browser-only API
-- TipTap editors require browser DOM
-- No server-side data fetching is needed
-
-Next.js still provides value here through its router, layout composition, and build tooling. If a backend is added later, data-fetching pages could become Server Components while editor-heavy pages remain client-side.
-
-### Async Service Layer Over localStorage
+### Async Service Layer (localStorage, migrating to Prisma)
 
 `src/lib/storage.ts` wraps localStorage behind `async` functions that return Promises. localStorage is synchronous, so this is technically unnecessary today. The reason:
 
-- Every function signature matches what a `fetch`-based implementation would look like
+- Every function signature matches what a `fetch`-based or Prisma-based implementation would look like
 - Swapping to a real backend means changing the function bodies, not the call sites
 - No consuming code needs to be refactored when the storage backend changes
+
+The Prisma schema and client are in place. The next step is replacing the localStorage function bodies in `storage.ts` with Prisma queries.
 
 ### TipTap for Rich Text
 
@@ -114,6 +125,8 @@ The sidebar handles primary navigation. Breadcrumbs provide context within neste
 
 ## Data Model
 
+### TypeScript types (`src/lib/types.ts`)
+
 ```
 UserProfile
 ├── id: string (UUID)
@@ -146,10 +159,45 @@ PromotionEntry
 
 `BeltColor` is a union type: `"white" | "blue" | "purple" | "brown" | "black" | "coral-red-black" | "coral-red-white" | "red"`
 
+### Database tables (`prisma/schema.prisma`)
+
+```
+profiles
+├── id: text (PK, Clerk user ID)
+├── name: text
+├── academy_name: text?
+├── current_belt: text (default "white")
+├── current_stripes: int (default 0)
+└── created_at: timestamp
+
+journal_entries
+├── id: uuid (PK)
+├── user_id: text (FK → profiles.id, cascade delete)
+├── title: text
+├── description: text
+├── highlight_moves: text
+├── what_went_right: text
+├── what_to_improve: text
+├── created_at: timestamp
+└── updated_at: timestamp (auto-updated)
+
+promotions
+├── id: uuid (PK)
+├── user_id: text (FK → profiles.id, cascade delete)
+├── belt: text
+├── stripes: int (default 0)
+├── date: date
+├── notes: text?
+└── created_at: timestamp
+```
+
+Indexes on `user_id` in both `journal_entries` and `promotions` for efficient per-user queries.
+
 ## Future Considerations
 
-- **Backend swap**: Replace function bodies in `storage.ts` with `fetch` calls. No other files need to change.
-- **Clerk user ID migration**: Replace the localStorage UUID `userId` with the authenticated Clerk user ID from `useUser()` or `auth()`. The `userId` field on entries is already present.
+- **Storage migration**: Replace localStorage function bodies in `storage.ts` with Prisma queries. The async signatures already match. This is the immediate next step.
+- **Clerk user ID migration**: Replace the localStorage UUID `userId` with the authenticated Clerk user ID from `useUser()` or `auth()`. The `Profile.id` in the database is already designed to hold the Clerk user ID.
+- **Server Components**: Once storage moves to Prisma, data-fetching pages can become Server Components. Editor pages will remain client-side.
 - **Search/filtering**: Journal list currently loads all entries. Add pagination or search when entry count warrants it.
 - **Entry editing**: Currently entries are create/view/delete only. Adding an edit page would reuse `TipTapEditor` with pre-filled content.
-- **Export**: The localStorage JSON format is simple enough to export as a backup file.
+- **Export**: Consider a database export endpoint once localStorage is fully replaced.

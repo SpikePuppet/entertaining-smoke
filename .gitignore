@@ -37,3 +37,5 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .next/
 # clerk configuration (can include secrets)
 /.clerk/
+
+/src/generated/prisma

@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Profile {
-  id             String          @id @default(dbgenerated("(auth.jwt() ->> 'sub'::text)")) // Clerk user ID
+  id             String          @id @default(dbgenerated("(current_setting('request.jwt.claims', true)::json ->> 'sub')")) // Clerk user ID
   name           String
   academyName    String?         @map("academy_name")
   currentBelt    String          @default("white")  @map("current_belt")
@@ -23,7 +23,7 @@ model Profile {
 model JournalEntry {
   id             String   @id @default(uuid())
   user           Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId         String   @default(dbgenerated("(auth.jwt() ->> 'sub'::text)")) @map("user_id")
+  userId         String   @default(dbgenerated("(current_setting('request.jwt.claims', true)::json ->> 'sub')")) @map("user_id")
   title          String
   description    String   @default("")
   highlightMoves String   @default("")  @map("highlight_moves")
@@ -39,7 +39,7 @@ model JournalEntry {
 model Promotion {
   id        String   @id @default(uuid())
   user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String   @default(dbgenerated("(auth.jwt() ->> 'sub'::text)")) @map("user_id")
+  userId    String   @default(dbgenerated("(current_setting('request.jwt.claims', true)::json ->> 'sub')")) @map("user_id")
   belt      String
   stripes   Int      @default(0)
   date      DateTime @db.Date

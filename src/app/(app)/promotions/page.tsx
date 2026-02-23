@@ -6,24 +6,60 @@ import type { PromotionEntry } from "@/lib/types";
 import { getPromotions } from "@/lib/storage";
 import PromotionCard from "@/components/PromotionCard";
 import Breadcrumb from "@/components/Breadcrumb";
+import StateCard from "@/components/StateCard";
 
 export default function PromotionsPage() {
   const [promotions, setPromotions] = useState<PromotionEntry[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function load() {
-      const p = await getPromotions();
-      setPromotions(p.sort((a, b) => b.date.localeCompare(a.date)));
-      setLoading(false);
+      setLoading(true);
+      setLoadError(null);
+
+      try {
+        const p = await getPromotions();
+        if (!isMounted) return;
+        setPromotions(p.sort((a, b) => b.date.localeCompare(a.date)));
+      } catch {
+        if (!isMounted) return;
+        setLoadError("We couldn't load your promotions right now.");
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     }
+
     load();
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [reloadKey]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <p className="text-zinc-500">Loading...</p>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="max-w-3xl">
+        <Breadcrumb items={[{ label: "Dashboard", href: "/" }, { label: "Promotions" }]} />
+        <StateCard
+          title="Promotions unavailable"
+          description={loadError}
+          actionLabel="Try Again"
+          onAction={() => setReloadKey((value) => value + 1)}
+        />
       </div>
     );
   }

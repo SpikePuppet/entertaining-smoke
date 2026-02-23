@@ -2,34 +2,57 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { UserProfile, JournalEntry } from "@/lib/types";
 import { getProfile, getJournalEntries } from "@/lib/storage";
 import { getBeltColor } from "@/lib/belts";
 import BeltBadge from "@/components/BeltBadge";
 import JournalCard from "@/components/JournalCard";
 import Breadcrumb from "@/components/Breadcrumb";
+import StateCard from "@/components/StateCard";
 
 export default function Dashboard() {
-  const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function load() {
-      const p = await getProfile();
-      if (!p) {
-        router.push("/profile");
-        return;
+      setLoading(true);
+      setLoadError(null);
+
+      try {
+        const p = await getProfile();
+        if (!isMounted) return;
+
+        setProfile(p);
+        if (!p) {
+          setEntries([]);
+          return;
+        }
+
+        const e = await getJournalEntries();
+        if (!isMounted) return;
+        setEntries(e.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5));
+      } catch {
+        if (!isMounted) return;
+        setLoadError("We couldn't load your dashboard right now.");
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-      setProfile(p);
-      const e = await getJournalEntries();
-      setEntries(e.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5));
-      setLoading(false);
     }
+
     load();
-  }, [router]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [reloadKey]);
 
   if (loading) {
     return (
@@ -39,7 +62,33 @@ export default function Dashboard() {
     );
   }
 
-  if (!profile) return null;
+  if (loadError) {
+    return (
+      <div className="max-w-3xl">
+        <Breadcrumb items={[{ label: "Dashboard" }]} />
+        <StateCard
+          title="Dashboard unavailable"
+          description={loadError}
+          actionLabel="Try Again"
+          onAction={() => setReloadKey((value) => value + 1)}
+        />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="max-w-3xl">
+        <Breadcrumb items={[{ label: "Dashboard" }]} />
+        <StateCard
+          title="No profile yet"
+          description="Set up your profile to start tracking sessions and promotions."
+          actionLabel="Set Up Profile"
+          actionHref="/profile"
+        />
+      </div>
+    );
+  }
 
   const accentColor = getBeltColor(profile.currentBelt);
 

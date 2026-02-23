@@ -7,6 +7,7 @@ import { getProfile, createProfile, updateProfile } from "@/lib/storage";
 import { BELTS, getMaxStripes } from "@/lib/belts";
 import BeltBadge from "@/components/BeltBadge";
 import Breadcrumb from "@/components/Breadcrumb";
+import StateCard from "@/components/StateCard";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -17,24 +18,54 @@ export default function ProfilePage() {
   const [stripes, setStripes] = useState(0);
   const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const maxStripes = getMaxStripes(belt);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function load() {
-      const p = await getProfile();
-      if (p) {
-        setProfile(p);
-        setName(p.name);
-        setAcademyName(p.academyName ?? "");
-        setBelt(p.currentBelt);
-        setStripes(p.currentStripes);
-      } else {
-        setIsNew(true);
+      setLoading(true);
+      setLoadError(null);
+
+      try {
+        const p = await getProfile();
+        if (!isMounted) return;
+
+        if (p) {
+          setProfile(p);
+          setName(p.name);
+          setAcademyName(p.academyName ?? "");
+          setBelt(p.currentBelt);
+          setStripes(p.currentStripes);
+          setIsNew(false);
+        } else {
+          setProfile(null);
+          setName("");
+          setAcademyName("");
+          setBelt("white");
+          setStripes(0);
+          setIsNew(true);
+        }
+      } catch {
+        if (!isMounted) return;
+        setLoadError("We couldn't load your profile right now.");
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
+
     load();
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [reloadKey]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -42,16 +73,13 @@ export default function ProfilePage() {
     setSaving(true);
 
     if (isNew) {
-      const p = await createProfile({
+      const createdProfile = await createProfile({
         name: name.trim(),
         academyName: academyName.trim() || undefined,
-      });
-      // Update belt/stripes right after creation
-      const updated = await updateProfile({
         currentBelt: belt,
         currentStripes: Math.min(stripes, maxStripes),
       });
-      setProfile(updated);
+      setProfile(createdProfile);
       setIsNew(false);
       router.push("/");
     } else {
@@ -65,6 +93,28 @@ export default function ProfilePage() {
     }
 
     setSaving(false);
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-zinc-500">Loading...</p>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="max-w-xl">
+        <Breadcrumb items={[{ label: "Dashboard", href: "/" }, { label: "Profile" }]} />
+        <StateCard
+          title="Profile unavailable"
+          description={loadError}
+          actionLabel="Try Again"
+          onAction={() => setReloadKey((value) => value + 1)}
+        />
+      </div>
+    );
   }
 
   return (

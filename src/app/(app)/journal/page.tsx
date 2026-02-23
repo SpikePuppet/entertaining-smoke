@@ -7,26 +7,62 @@ import { getJournalEntries, getProfile } from "@/lib/storage";
 import { getBeltColor } from "@/lib/belts";
 import JournalCard from "@/components/JournalCard";
 import Breadcrumb from "@/components/Breadcrumb";
+import StateCard from "@/components/StateCard";
 
 export default function JournalListPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function load() {
-      const [e, p] = await Promise.all([getJournalEntries(), getProfile()]);
-      setEntries(e.sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
-      setProfile(p);
-      setLoading(false);
+      setLoading(true);
+      setLoadError(null);
+
+      try {
+        const [e, p] = await Promise.all([getJournalEntries(), getProfile()]);
+        if (!isMounted) return;
+        setEntries(e.sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+        setProfile(p);
+      } catch {
+        if (!isMounted) return;
+        setLoadError("We couldn't load your journal entries right now.");
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     }
+
     load();
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [reloadKey]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <p className="text-zinc-500">Loading...</p>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="max-w-3xl">
+        <Breadcrumb items={[{ label: "Dashboard", href: "/" }, { label: "Journal" }]} />
+        <StateCard
+          title="Journal unavailable"
+          description={loadError}
+          actionLabel="Try Again"
+          onAction={() => setReloadKey((value) => value + 1)}
+        />
       </div>
     );
   }

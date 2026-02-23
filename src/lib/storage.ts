@@ -1,65 +1,78 @@
-import { v4 as uuidv4 } from "uuid";
-import type { UserProfile, JournalEntry, PromotionEntry } from "./types";
+import type { JournalEntry, PromotionEntry, UserProfile } from "./types";
 
-const KEYS = {
-  profile: "bjj_profile",
-  journal: "bjj_journal_entries",
-  promotions: "bjj_promotions",
-} as const;
+async function request<T>(
+  path: string,
+  init?: RequestInit
+): Promise<T> {
+  const response = await fetch(path, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers ?? {}),
+    },
+    cache: "no-store",
+  });
 
-function getItem<T>(key: string): T | null {
-  if (typeof window === "undefined") return null;
-  const raw = localStorage.getItem(key);
-  if (!raw) return null;
-  return JSON.parse(raw) as T;
-}
+  if (!response.ok) {
+    let message = `Request failed: ${response.status}`;
 
-function setItem<T>(key: string, value: T): void {
-  localStorage.setItem(key, JSON.stringify(value));
+    try {
+      const json = (await response.json()) as { error?: string };
+      if (json.error) {
+        message = json.error;
+      }
+    } catch {
+      // Ignore invalid JSON error payloads.
+    }
+
+    throw new Error(message);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  return (await response.json()) as T;
 }
 
 // Profile
 
 export async function getProfile(): Promise<UserProfile | null> {
-  return getItem<UserProfile>(KEYS.profile);
+  return request<UserProfile | null>("/api/profile", {
+    method: "GET",
+  });
 }
 
 export async function createProfile(
   data: Pick<UserProfile, "name" | "academyName"> & Partial<Pick<UserProfile, "currentBelt" | "currentStripes">>
 ): Promise<UserProfile> {
-  const profile: UserProfile = {
-    id: uuidv4(),
-    name: data.name,
-    academyName: data.academyName,
-    currentBelt: data.currentBelt ?? "white",
-    currentStripes: data.currentStripes ?? 0,
-    createdAt: new Date().toISOString(),
-  };
-  setItem(KEYS.profile, profile);
-  return profile;
+  return request<UserProfile>("/api/profile", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
 export async function updateProfile(
   data: Partial<Pick<UserProfile, "name" | "academyName" | "currentBelt" | "currentStripes">>
 ): Promise<UserProfile> {
-  const profile = await getProfile();
-  if (!profile) throw new Error("No profile found");
-  const updated = { ...profile, ...data };
-  setItem(KEYS.profile, updated);
-  return updated;
+  return request<UserProfile>("/api/profile", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
 }
 
 // Journal Entries
 
 export async function getJournalEntries(): Promise<JournalEntry[]> {
-  return getItem<JournalEntry[]>(KEYS.journal) ?? [];
+  return request<JournalEntry[]>("/api/journal", {
+    method: "GET",
+  });
 }
 
-export async function getJournalEntry(
-  id: string
-): Promise<JournalEntry | null> {
-  const entries = await getJournalEntries();
-  return entries.find((e) => e.id === id) ?? null;
+export async function getJournalEntry(id: string): Promise<JournalEntry | null> {
+  return request<JournalEntry | null>(`/api/journal/${encodeURIComponent(id)}`, {
+    method: "GET",
+  });
 }
 
 export async function createJournalEntry(
@@ -68,63 +81,31 @@ export async function createJournalEntry(
     "title" | "description" | "highlightMoves" | "whatWentRight" | "whatToImprove"
   >
 ): Promise<JournalEntry> {
-  const profile = await getProfile();
-  const now = new Date().toISOString();
-  const entry: JournalEntry = {
-    id: uuidv4(),
-    userId: profile?.id ?? "",
-    title: data.title,
-    description: data.description,
-    highlightMoves: data.highlightMoves,
-    whatWentRight: data.whatWentRight,
-    whatToImprove: data.whatToImprove,
-    createdAt: now,
-    updatedAt: now,
-  };
-  const entries = await getJournalEntries();
-  entries.push(entry);
-  setItem(KEYS.journal, entries);
-  return entry;
+  return request<JournalEntry>("/api/journal", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
 export async function deleteJournalEntry(id: string): Promise<void> {
-  const entries = await getJournalEntries();
-  setItem(
-    KEYS.journal,
-    entries.filter((e) => e.id !== id)
-  );
+  await request<void>(`/api/journal/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
 }
 
 // Promotions
 
 export async function getPromotions(): Promise<PromotionEntry[]> {
-  return getItem<PromotionEntry[]>(KEYS.promotions) ?? [];
+  return request<PromotionEntry[]>("/api/promotions", {
+    method: "GET",
+  });
 }
 
 export async function createPromotion(
   data: Pick<PromotionEntry, "belt" | "stripes" | "date" | "notes">
 ): Promise<PromotionEntry> {
-  const profile = await getProfile();
-  const entry: PromotionEntry = {
-    id: uuidv4(),
-    userId: profile?.id ?? "",
-    belt: data.belt,
-    stripes: data.stripes,
-    date: data.date,
-    notes: data.notes,
-    createdAt: new Date().toISOString(),
-  };
-  const promotions = await getPromotions();
-  promotions.push(entry);
-  setItem(KEYS.promotions, promotions);
-
-  // Also update user's current belt/stripes
-  if (profile) {
-    await updateProfile({
-      currentBelt: data.belt,
-      currentStripes: data.stripes,
-    });
-  }
-
-  return entry;
+  return request<PromotionEntry>("/api/promotions", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }

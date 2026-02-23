@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SignOutButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { UserProfile } from "@/lib/types";
@@ -17,14 +18,27 @@ const NAV_ITEMS = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profileLoadError, setProfileLoadError] = useState(false);
 
+  // Re-check profile on pathname change (in case it was just created).
   useEffect(() => {
-    getProfile().then(setProfile);
-  }, []);
+    let isMounted = true;
 
-  // Re-check profile on pathname change (in case it was just created)
-  useEffect(() => {
-    getProfile().then(setProfile);
+    void getProfile()
+      .then((currentProfile) => {
+        if (!isMounted) return;
+        setProfile(currentProfile);
+        setProfileLoadError(false);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setProfile(null);
+        setProfileLoadError(true);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [pathname]);
 
   return (
@@ -72,10 +86,19 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="px-6 py-4 border-t border-zinc-800">
-        <p className="text-xs text-zinc-600">
-          {profile?.name ?? "Set up your profile"}
+      <div className="px-3 py-4 border-t border-zinc-800">
+        <p className="text-xs text-zinc-600 px-3 mb-1">
+          {profileLoadError ? "Profile unavailable" : profile?.name ?? "Set up your profile"}
         </p>
+        <SignOutButton>
+          <button
+            type="button"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors"
+          >
+            <span className="text-base">⏻</span>
+            Sign Out
+          </button>
+        </SignOutButton>
       </div>
     </aside>
   );

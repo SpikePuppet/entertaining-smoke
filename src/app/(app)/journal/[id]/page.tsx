@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import type { JournalEntry } from "@/lib/types";
 import { getJournalEntry, deleteJournalEntry } from "@/lib/storage";
 import TipTapViewer from "@/components/TipTapViewer";
 import Breadcrumb from "@/components/Breadcrumb";
+import StateCard from "@/components/StateCard";
 
 function Section({ label, content }: { label: string; content: string }) {
   if (!content || content === "<p></p>") return null;
@@ -24,16 +24,37 @@ export default function JournalDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [entry, setEntry] = useState<JournalEntry | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function load() {
-      const e = await getJournalEntry(params.id as string);
-      setEntry(e);
-      setLoading(false);
+      setLoading(true);
+      setLoadError(null);
+
+      try {
+        const e = await getJournalEntry(params.id as string);
+        if (!isMounted) return;
+        setEntry(e);
+      } catch {
+        if (!isMounted) return;
+        setLoadError("We couldn't load this journal entry right now.");
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     }
+
     load();
-  }, [params.id]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [params.id, reloadKey]);
 
   async function handleDelete() {
     if (!entry) return;
@@ -50,16 +71,30 @@ export default function JournalDetailPage() {
     );
   }
 
+  if (loadError) {
+    return (
+      <div className="max-w-3xl">
+        <Breadcrumb items={[{ label: "Dashboard", href: "/" }, { label: "Journal", href: "/journal" }]} />
+        <StateCard
+          title="Entry unavailable"
+          description={loadError}
+          actionLabel="Try Again"
+          onAction={() => setReloadKey((value) => value + 1)}
+        />
+      </div>
+    );
+  }
+
   if (!entry) {
     return (
       <div className="max-w-3xl">
-        <p className="text-zinc-500">Entry not found.</p>
-        <Link
-          href="/journal"
-          className="text-sm text-zinc-400 hover:text-white mt-4 inline-block"
-        >
-          ← Back to Journal
-        </Link>
+        <Breadcrumb items={[{ label: "Dashboard", href: "/" }, { label: "Journal", href: "/journal" }]} />
+        <StateCard
+          title="Entry not found"
+          description="This journal entry doesn't exist or is no longer available."
+          actionLabel="Back to Journal"
+          actionHref="/journal"
+        />
       </div>
     );
   }

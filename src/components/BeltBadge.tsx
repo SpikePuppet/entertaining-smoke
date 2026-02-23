@@ -63,7 +63,7 @@ export default function BeltBadge({
             : size === "md"
               ? "text-sm"
               : "text-base"
-        } text-zinc-300`}
+        } text-fg-secondary`}
       >
         {label}
       </span>

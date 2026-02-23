@@ -45,7 +45,7 @@ export default function PromotionsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-zinc-500">Loading...</p>
+        <p className="text-fg-muted">Loading...</p>
       </div>
     );
   }
@@ -70,25 +70,25 @@ export default function PromotionsPage() {
 
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-1">Promotions</h1>
-          <p className="text-zinc-500 text-sm">Your belt progression timeline</p>
+          <h1 className="text-2xl font-bold text-fg mb-1">Promotions</h1>
+          <p className="text-fg-muted text-sm">Your belt progression timeline</p>
         </div>
         <Link
           href="/promotions/new"
-          className="text-sm px-4 py-2 rounded-md bg-zinc-100 text-zinc-900 font-medium hover:bg-white transition-colors"
+          className="text-sm px-4 py-2 rounded-md bg-btn-primary-bg text-btn-primary-fg font-medium hover:opacity-90 transition-opacity"
         >
           + Record Promotion
         </Link>
       </div>
 
       {promotions.length === 0 ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-12 text-center">
-          <p className="text-zinc-500 text-sm mb-4">
+        <div className="bg-surface border border-border rounded-lg p-12 text-center">
+          <p className="text-fg-muted text-sm mb-4">
             No promotions recorded yet. Track your belt journey!
           </p>
           <Link
             href="/promotions/new"
-            className="text-sm px-4 py-2 rounded-md bg-zinc-800 text-white hover:bg-zinc-700 transition-colors border border-zinc-700"
+            className="text-sm px-4 py-2 rounded-md bg-active text-fg hover:bg-hover transition-colors border border-border-strong"
           >
             Record Promotion
           </Link>

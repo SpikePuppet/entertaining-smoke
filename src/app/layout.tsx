@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "Track your Brazilian Jiu-Jitsu training, promotions, and progress",
 };
 
+const themeScript = `(function(){try{var t=localStorage.getItem("theme");if(t==="light")return;document.documentElement.classList.add("dark")}catch(e){document.documentElement.classList.add("dark")}})()`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -37,9 +39,12 @@ export default function RootLayout({
         },
       }}
     >
-      <html lang="en" className="dark">
+      <html lang="en" suppressHydrationWarning>
+        <head>
+          <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        </head>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-950 text-zinc-100`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-base text-fg`}
         >
           {children}
         </body>

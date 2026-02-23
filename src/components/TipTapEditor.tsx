@@ -29,8 +29,8 @@ function ToolbarButton({
       }}
       className={`px-2 py-1 text-xs rounded transition-colors ${
         active
-          ? "bg-zinc-600 text-white"
-          : "text-zinc-400 hover:text-white hover:bg-zinc-700"
+          ? "bg-strong text-fg"
+          : "text-fg-tertiary hover:text-fg hover:bg-hover"
       }`}
     >
       {children}
@@ -65,9 +65,9 @@ export default function TipTapEditor({
   if (!editor) return null;
 
   return (
-    <div className="border border-zinc-700 rounded-lg overflow-hidden bg-zinc-900 focus-within:border-zinc-500 transition-colors">
+    <div className="border border-border-strong rounded-lg overflow-hidden bg-surface focus-within:border-border-focus transition-colors">
       {/* Toolbar */}
-      <div className="flex items-center gap-1 px-2 py-1.5 border-b border-zinc-800 bg-zinc-900/50">
+      <div className="flex items-center gap-1 px-2 py-1.5 border-b border-border bg-surface/50">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive("bold")}
@@ -80,7 +80,7 @@ export default function TipTapEditor({
         >
           I
         </ToolbarButton>
-        <div className="w-px h-4 bg-zinc-700 mx-1" />
+        <div className="w-px h-4 bg-border-strong mx-1" />
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           active={editor.isActive("bulletList")}
@@ -93,7 +93,7 @@ export default function TipTapEditor({
         >
           1. List
         </ToolbarButton>
-        <div className="w-px h-4 bg-zinc-700 mx-1" />
+        <div className="w-px h-4 bg-border-strong mx-1" />
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHighlight().run()}
           active={editor.isActive("highlight")}

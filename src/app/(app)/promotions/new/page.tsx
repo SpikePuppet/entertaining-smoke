@@ -35,13 +35,13 @@ export default function NewPromotionPage() {
       <Breadcrumb items={[{ label: "Dashboard", href: "/" }, { label: "Promotions", href: "/promotions" }, { label: "Record Promotion" }]} />
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Record Promotion</h1>
+        <h1 className="text-2xl font-bold text-fg">Record Promotion</h1>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Belt Selector */}
         <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-3">
+          <label className="block text-sm font-medium text-fg-secondary mb-3">
             Belt
           </label>
           <div className="grid grid-cols-4 gap-2">
@@ -55,8 +55,8 @@ export default function NewPromotionPage() {
                 }}
                 className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border transition-all ${
                   belt === b.color
-                    ? "border-zinc-500 bg-zinc-800"
-                    : "border-zinc-800 bg-zinc-900 hover:border-zinc-700"
+                    ? "border-border-focus bg-active"
+                    : "border-border bg-surface hover:border-border-strong"
                 }`}
               >
                 <div
@@ -66,7 +66,7 @@ export default function NewPromotionPage() {
                     border: b.color === "white" ? "1px solid #555" : "none",
                   }}
                 />
-                <span className="text-xs text-zinc-400 text-center leading-tight">
+                <span className="text-xs text-fg-tertiary text-center leading-tight">
                   {b.label.replace(" Belt", "")}
                 </span>
               </button>
@@ -77,7 +77,7 @@ export default function NewPromotionPage() {
         {/* Stripes / Degrees */}
         {maxStripes > 0 && (
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
+            <label className="block text-sm font-medium text-fg-secondary mb-2">
               {belt === "black" ? "Degree" : "Stripes"}
             </label>
             <div className="flex gap-2">
@@ -88,8 +88,8 @@ export default function NewPromotionPage() {
                   onClick={() => setStripes(i)}
                   className={`w-10 h-10 rounded-lg border text-sm font-medium transition-all ${
                     stripes === i
-                      ? "border-zinc-500 bg-zinc-800 text-white"
-                      : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700"
+                      ? "border-border-focus bg-active text-fg"
+                      : "border-border bg-surface text-fg-muted hover:border-border-strong"
                   }`}
                 >
                   {i}
@@ -103,7 +103,7 @@ export default function NewPromotionPage() {
         <div>
           <label
             htmlFor="date"
-            className="block text-sm font-medium text-zinc-300 mb-2"
+            className="block text-sm font-medium text-fg-secondary mb-2"
           >
             Date
           </label>
@@ -112,7 +112,7 @@ export default function NewPromotionPage() {
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-white text-sm focus:outline-none focus:border-zinc-500 transition-colors"
+            className="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-fg text-sm focus:outline-none focus:border-border-focus transition-colors"
           />
         </div>
 
@@ -120,7 +120,7 @@ export default function NewPromotionPage() {
         <div>
           <label
             htmlFor="notes"
-            className="block text-sm font-medium text-zinc-300 mb-2"
+            className="block text-sm font-medium text-fg-secondary mb-2"
           >
             Notes (optional)
           </label>
@@ -130,7 +130,7 @@ export default function NewPromotionPage() {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Any notes about this promotion..."
             rows={3}
-            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors resize-none"
+            className="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-fg text-sm placeholder:text-fg-dim focus:outline-none focus:border-border-focus transition-colors resize-none"
           />
         </div>
 
@@ -139,13 +139,13 @@ export default function NewPromotionPage() {
           <button
             type="submit"
             disabled={saving}
-            className="px-4 py-2 bg-zinc-100 text-zinc-900 rounded-lg text-sm font-medium hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-btn-primary-bg text-btn-primary-fg rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? "Saving..." : "Save Promotion"}
           </button>
           <Link
             href="/promotions"
-            className="px-4 py-2 text-zinc-400 hover:text-white text-sm transition-colors"
+            className="px-4 py-2 text-fg-tertiary hover:text-fg text-sm transition-colors"
           >
             Cancel
           </Link>

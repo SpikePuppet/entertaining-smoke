@@ -48,7 +48,7 @@ export default function JournalListPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-zinc-500">Loading...</p>
+        <p className="text-fg-muted">Loading...</p>
       </div>
     );
   }
@@ -75,27 +75,27 @@ export default function JournalListPage() {
 
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-1">Journal</h1>
-          <p className="text-zinc-500 text-sm">
+          <h1 className="text-2xl font-bold text-fg mb-1">Journal</h1>
+          <p className="text-fg-muted text-sm">
             {entries.length} {entries.length === 1 ? "entry" : "entries"}
           </p>
         </div>
         <Link
           href="/journal/new"
-          className="text-sm px-4 py-2 rounded-md bg-zinc-100 text-zinc-900 font-medium hover:bg-white transition-colors"
+          className="text-sm px-4 py-2 rounded-md bg-btn-primary-bg text-btn-primary-fg font-medium hover:opacity-90 transition-opacity"
         >
           + New Entry
         </Link>
       </div>
 
       {entries.length === 0 ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-12 text-center">
-          <p className="text-zinc-500 text-sm mb-4">
+        <div className="bg-surface border border-border rounded-lg p-12 text-center">
+          <p className="text-fg-muted text-sm mb-4">
             Your journal is empty. Record your first training session!
           </p>
           <Link
             href="/journal/new"
-            className="text-sm px-4 py-2 rounded-md bg-zinc-800 text-white hover:bg-zinc-700 transition-colors border border-zinc-700"
+            className="text-sm px-4 py-2 rounded-md bg-active text-fg hover:bg-hover transition-colors border border-border-strong"
           >
             Create Entry
           </Link>

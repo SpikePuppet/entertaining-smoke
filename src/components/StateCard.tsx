@@ -16,15 +16,15 @@ export default function StateCard({
   onAction,
 }: StateCardProps) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-      <h2 className="text-base font-semibold text-white mb-2">{title}</h2>
-      <p className="text-zinc-500 text-sm mb-5">{description}</p>
+    <div className="bg-surface border border-border rounded-lg p-8 text-center">
+      <h2 className="text-base font-semibold text-fg mb-2">{title}</h2>
+      <p className="text-fg-muted text-sm mb-5">{description}</p>
 
       {actionLabel && onAction && (
         <button
           type="button"
           onClick={onAction}
-          className="text-sm px-4 py-2 rounded-md bg-zinc-800 text-white hover:bg-zinc-700 transition-colors border border-zinc-700"
+          className="text-sm px-4 py-2 rounded-md bg-active text-fg hover:bg-hover transition-colors border border-border-strong"
         >
           {actionLabel}
         </button>
@@ -33,7 +33,7 @@ export default function StateCard({
       {actionLabel && !onAction && actionHref && (
         <Link
           href={actionHref}
-          className="text-sm px-4 py-2 rounded-md bg-zinc-800 text-white hover:bg-zinc-700 transition-colors border border-zinc-700"
+          className="text-sm px-4 py-2 rounded-md bg-active text-fg hover:bg-hover transition-colors border border-border-strong"
         >
           {actionLabel}
         </Link>

@@ -36,7 +36,7 @@ export default function NewJournalEntryPage() {
       <Breadcrumb items={[{ label: "Dashboard", href: "/" }, { label: "Journal", href: "/journal" }, { label: "New Entry" }]} />
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">New Journal Entry</h1>
+        <h1 className="text-2xl font-bold text-fg">New Journal Entry</h1>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
@@ -45,7 +45,7 @@ export default function NewJournalEntryPage() {
           <div className="flex items-center justify-between mb-2">
             <label
               htmlFor="title"
-              className="block text-sm font-medium text-zinc-300"
+              className="block text-sm font-medium text-fg-secondary"
             >
               Title
             </label>
@@ -58,13 +58,13 @@ export default function NewJournalEntryPage() {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Give this session a name..."
             required
-            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors"
+            className="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-fg text-sm placeholder:text-fg-dim focus:outline-none focus:border-border-focus transition-colors"
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-2">
+          <label className="block text-sm font-medium text-fg-secondary mb-2">
             Description
           </label>
           <TipTapEditor
@@ -76,7 +76,7 @@ export default function NewJournalEntryPage() {
 
         {/* Techniques Covered */}
         <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-2">
+          <label className="block text-sm font-medium text-fg-secondary mb-2">
             Techniques Covered
           </label>
           <TipTapEditor
@@ -88,7 +88,7 @@ export default function NewJournalEntryPage() {
 
         {/* What Went Right */}
         <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-2">
+          <label className="block text-sm font-medium text-fg-secondary mb-2">
             What Went Right
           </label>
           <TipTapEditor
@@ -100,7 +100,7 @@ export default function NewJournalEntryPage() {
 
         {/* What to Improve */}
         <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-2">
+          <label className="block text-sm font-medium text-fg-secondary mb-2">
             What to Improve
           </label>
           <TipTapEditor
@@ -115,13 +115,13 @@ export default function NewJournalEntryPage() {
           <button
             type="submit"
             disabled={saving || !title.trim()}
-            className="px-4 py-2 bg-zinc-100 text-zinc-900 rounded-lg text-sm font-medium hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-btn-primary-bg text-btn-primary-fg rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? "Saving..." : "Save Entry"}
           </button>
           <Link
             href="/journal"
-            className="px-4 py-2 text-zinc-400 hover:text-white text-sm transition-colors"
+            className="px-4 py-2 text-fg-tertiary hover:text-fg text-sm transition-colors"
           >
             Cancel
           </Link>

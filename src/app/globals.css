@@ -1,21 +1,66 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #09090b;
-  --color-foreground: #fafafa;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+@theme {
+  --color-base: #ffffff;
+  --color-surface: #f4f4f5;
+  --color-active: #e4e4e7;
+  --color-hover: #d4d4d8;
+  --color-strong: #a1a1aa;
+  --color-border: #e4e4e7;
+  --color-border-strong: #d4d4d8;
+  --color-border-focus: #71717a;
+  --color-fg: #09090b;
+  --color-fg-secondary: #27272a;
+  --color-fg-tertiary: #3f3f46;
+  --color-fg-muted: #52525b;
+  --color-fg-dim: #71717a;
+  --color-btn-primary-bg: #27272a;
+  --color-btn-primary-fg: #ffffff;
+}
+
+:root {
+  color-scheme: light;
+  --mark-bg: #fef3c7;
+  --mark-fg: #854d0e;
+  --placeholder-color: #a1a1aa;
+}
+
+.dark {
+  color-scheme: dark;
+  --color-base: #09090b;
+  --color-surface: #18181b;
+  --color-active: #27272a;
+  --color-hover: #3f3f46;
+  --color-strong: #52525b;
+  --color-border: #27272a;
+  --color-border-strong: #3f3f46;
+  --color-border-focus: #71717a;
+  --color-fg: #ffffff;
+  --color-fg-secondary: #d4d4d8;
+  --color-fg-tertiary: #a1a1aa;
+  --color-fg-muted: #71717a;
+  --color-fg-dim: #52525b;
+  --color-btn-primary-bg: #f4f4f5;
+  --color-btn-primary-fg: #18181b;
+  --mark-bg: #854d0e;
+  --mark-fg: #fef3c7;
+  --placeholder-color: #52525b;
+}
+
 body {
-  background: var(--color-background);
-  color: var(--color-foreground);
+  background: var(--color-base);
+  color: var(--color-fg);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
 /* TipTap editor styles */
 .tiptap p.is-editor-empty:first-child::before {
-  color: #52525b;
+  color: var(--placeholder-color);
   content: attr(data-placeholder);
   float: left;
   height: 0;
@@ -52,8 +97,8 @@ body {
 }
 
 .tiptap mark {
-  background-color: #854d0e;
-  color: #fef3c7;
+  background-color: var(--mark-bg);
+  color: var(--mark-fg);
   border-radius: 2px;
   padding: 0 2px;
 }

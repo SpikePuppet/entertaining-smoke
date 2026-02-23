@@ -22,16 +22,16 @@ export default function PromotionCard({
     <div className="flex gap-4">
       {/* Timeline line and dot */}
       <div className="flex flex-col items-center">
-        <div className="w-3 h-3 rounded-full bg-zinc-600 border-2 border-zinc-500 shrink-0 mt-1.5" />
-        {!isLast && <div className="w-px flex-1 bg-zinc-800 mt-1" />}
+        <div className="w-3 h-3 rounded-full bg-strong border-2 border-border-focus shrink-0 mt-1.5" />
+        {!isLast && <div className="w-px flex-1 bg-border mt-1" />}
       </div>
 
       {/* Content */}
       <div className="pb-8 min-w-0">
-        <p className="text-xs text-zinc-500 mb-2">{date}</p>
+        <p className="text-xs text-fg-muted mb-2">{date}</p>
         <BeltBadge belt={promotion.belt} stripes={promotion.stripes} size="sm" />
         {promotion.notes && (
-          <p className="text-sm text-zinc-400 mt-2">{promotion.notes}</p>
+          <p className="text-sm text-fg-tertiary mt-2">{promotion.notes}</p>
         )}
       </div>
     </div>

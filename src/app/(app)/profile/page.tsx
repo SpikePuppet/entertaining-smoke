@@ -98,7 +98,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-zinc-500">Loading...</p>
+        <p className="text-fg-muted">Loading...</p>
       </div>
     );
   }
@@ -122,10 +122,10 @@ export default function ProfilePage() {
       <Breadcrumb items={[{ label: "Dashboard", href: "/" }, { label: isNew ? "Set Up Profile" : "Profile" }]} />
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white mb-1">
+        <h1 className="text-2xl font-bold text-fg mb-1">
           {isNew ? "Set Up Your Profile" : "Profile"}
         </h1>
-        <p className="text-zinc-500 text-sm">
+        <p className="text-fg-muted text-sm">
           {isNew
             ? "Welcome! Let's get you set up."
             : "Manage your training profile."}
@@ -133,8 +133,8 @@ export default function ProfilePage() {
       </div>
 
       {profile && !isNew && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-3">
+        <div className="bg-surface border border-border rounded-lg p-6 mb-8">
+          <p className="text-xs text-fg-muted uppercase tracking-wider mb-3">
             Current Rank
           </p>
           <BeltBadge
@@ -142,7 +142,7 @@ export default function ProfilePage() {
             stripes={profile.currentStripes}
             size="lg"
           />
-          <p className="text-xs text-zinc-600 mt-4">
+          <p className="text-xs text-fg-dim mt-4">
             Member since{" "}
             {new Date(profile.createdAt).toLocaleDateString("en-US", {
               month: "long",
@@ -157,7 +157,7 @@ export default function ProfilePage() {
         <div>
           <label
             htmlFor="name"
-            className="block text-sm font-medium text-zinc-300 mb-2"
+            className="block text-sm font-medium text-fg-secondary mb-2"
           >
             Name
           </label>
@@ -168,14 +168,14 @@ export default function ProfilePage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
             required
-            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors"
+            className="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-fg text-sm placeholder:text-fg-dim focus:outline-none focus:border-border-focus transition-colors"
           />
         </div>
 
         <div>
           <label
             htmlFor="academy"
-            className="block text-sm font-medium text-zinc-300 mb-2"
+            className="block text-sm font-medium text-fg-secondary mb-2"
           >
             Academy Name
           </label>
@@ -185,13 +185,13 @@ export default function ProfilePage() {
             value={academyName}
             onChange={(e) => setAcademyName(e.target.value)}
             placeholder="Your academy (optional)"
-            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors"
+            className="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-fg text-sm placeholder:text-fg-dim focus:outline-none focus:border-border-focus transition-colors"
           />
         </div>
 
         {/* Belt Selector */}
         <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-3">
+          <label className="block text-sm font-medium text-fg-secondary mb-3">
             Current Belt
           </label>
           <div className="grid grid-cols-4 gap-2">
@@ -205,8 +205,8 @@ export default function ProfilePage() {
                 }}
                 className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border transition-all ${
                   belt === b.color
-                    ? "border-zinc-500 bg-zinc-800"
-                    : "border-zinc-800 bg-zinc-900 hover:border-zinc-700"
+                    ? "border-border-focus bg-active"
+                    : "border-border bg-surface hover:border-border-strong"
                 }`}
               >
                 <div
@@ -216,7 +216,7 @@ export default function ProfilePage() {
                     border: b.color === "white" ? "1px solid #555" : "none",
                   }}
                 />
-                <span className="text-xs text-zinc-400 text-center leading-tight">
+                <span className="text-xs text-fg-tertiary text-center leading-tight">
                   {b.label.replace(" Belt", "")}
                 </span>
               </button>
@@ -227,7 +227,7 @@ export default function ProfilePage() {
         {/* Stripes / Degrees */}
         {maxStripes > 0 && (
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
+            <label className="block text-sm font-medium text-fg-secondary mb-2">
               {belt === "black" ? "Degree" : "Stripes"}
             </label>
             <div className="flex gap-2">
@@ -238,8 +238,8 @@ export default function ProfilePage() {
                   onClick={() => setStripes(i)}
                   className={`w-10 h-10 rounded-lg border text-sm font-medium transition-all ${
                     stripes === i
-                      ? "border-zinc-500 bg-zinc-800 text-white"
-                      : "border-zinc-800 bg-zinc-900 text-zinc-500 hover:border-zinc-700"
+                      ? "border-border-focus bg-active text-fg"
+                      : "border-border bg-surface text-fg-muted hover:border-border-strong"
                   }`}
                 >
                   {i}
@@ -252,7 +252,7 @@ export default function ProfilePage() {
         <button
           type="submit"
           disabled={saving || !name.trim()}
-          className="px-4 py-2 bg-zinc-100 text-zinc-900 rounded-lg text-sm font-medium hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-btn-primary-bg text-btn-primary-fg rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? "Saving..." : isNew ? "Get Started" : "Save Changes"}
         </button>

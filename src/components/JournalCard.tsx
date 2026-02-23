@@ -32,7 +32,7 @@ export default function JournalCard({
   return (
     <Link href={`/journal/${entry.id}`} className="block group">
       <div
-        className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 pl-5 transition-all hover:border-zinc-700 hover:bg-zinc-900/80 relative overflow-hidden"
+        className="bg-surface border border-border rounded-lg p-4 pl-5 transition-all hover:border-border-strong hover:bg-surface/80 relative overflow-hidden"
       >
         <div
           className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg"
@@ -40,14 +40,14 @@ export default function JournalCard({
         />
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h3 className="text-white font-medium text-sm group-hover:text-zinc-100 truncate">
+            <h3 className="text-fg font-medium text-sm truncate">
               {entry.title}
             </h3>
-            <p className="text-zinc-500 text-xs mt-1 line-clamp-2">
+            <p className="text-fg-muted text-xs mt-1 line-clamp-2">
               {truncated}
             </p>
           </div>
-          <span className="text-xs text-zinc-600 whitespace-nowrap shrink-0">
+          <span className="text-xs text-fg-dim whitespace-nowrap shrink-0">
             {date}
           </span>
         </div>

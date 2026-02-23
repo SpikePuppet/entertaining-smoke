@@ -21,7 +21,7 @@ model Profile {
 }
 
 model JournalEntry {
-  id             String   @id @default(uuid())
+  id             String   @id @default(dbgenerated("(extensions.gen_random_uuid())::text"))
   user           Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String   @default(dbgenerated("(current_setting('request.jwt.claims', true)::json ->> 'sub')")) @map("user_id")
   title          String
@@ -37,7 +37,7 @@ model JournalEntry {
 }
 
 model Promotion {
-  id        String   @id @default(uuid())
+  id        String   @id @default(dbgenerated("(extensions.gen_random_uuid())::text"))
   user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String   @default(dbgenerated("(current_setting('request.jwt.claims', true)::json ->> 'sub')")) @map("user_id")
   belt      String

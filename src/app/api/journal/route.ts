@@ -1,5 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { errorResponse } from "@/lib/api/error-response";
+import { validateSameOrigin } from "@/lib/security/origin";
 import { mapJournalEntryRow, type JournalEntryRow } from "@/lib/supabase/mappers";
 import { createClerkSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -10,10 +12,6 @@ type CreateJournalEntryBody = {
   whatWentRight?: string;
   whatToImprove?: string;
 };
-
-function errorResponse(message: string, status = 500) {
-  return NextResponse.json({ error: message }, { status });
-}
 
 export async function GET() {
   const { userId } = await auth();
@@ -31,7 +29,7 @@ export async function GET() {
     .returns<JournalEntryRow[]>();
 
   if (error) {
-    return errorResponse(error.message, 500);
+    return errorResponse("Failed to load journal entries.", 500, error);
   }
 
   return NextResponse.json(data.map(mapJournalEntryRow));
@@ -42,6 +40,11 @@ export async function POST(request: Request) {
 
   if (!userId) {
     return errorResponse("Unauthorized.", 401);
+  }
+
+  const originValidation = validateSameOrigin(request);
+  if (!originValidation.ok) {
+    return errorResponse(originValidation.message, 403);
   }
 
   const body = (await request.json()) as CreateJournalEntryBody;
@@ -67,7 +70,7 @@ export async function POST(request: Request) {
     .single<JournalEntryRow>();
 
   if (error) {
-    return errorResponse(error.message, 500);
+    return errorResponse("Failed to create journal entry.", 500, error);
   }
 
   return NextResponse.json(mapJournalEntryRow(data), { status: 201 });

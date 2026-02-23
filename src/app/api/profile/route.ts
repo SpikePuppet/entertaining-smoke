@@ -1,6 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { BeltColor } from "@/lib/types";
+import { errorResponse } from "@/lib/api/error-response";
+import { validateSameOrigin } from "@/lib/security/origin";
 import { mapProfileRow, type ProfileRow } from "@/lib/supabase/mappers";
 import { createClerkSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -15,16 +17,22 @@ type UpdateProfileBody = Partial<
   Pick<CreateProfileBody, "name" | "academyName" | "currentBelt" | "currentStripes">
 >;
 
-function errorResponse(message: string, status = 500) {
-  return NextResponse.json({ error: message }, { status });
-}
-
 export async function GET() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return errorResponse("Unauthorized.", 401);
+  }
+
   const supabase = await createClerkSupabaseServerClient();
-  const { data, error } = await supabase.from("profiles").select("*").maybeSingle<ProfileRow>();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .maybeSingle<ProfileRow>();
 
   if (error) {
-    return errorResponse(error.message, 500);
+    return errorResponse("Failed to load profile.", 500, error);
   }
 
   return NextResponse.json(data ? mapProfileRow(data) : null);
@@ -35,6 +43,11 @@ export async function POST(request: Request) {
 
   if (!userId) {
     return errorResponse("Unauthorized.", 401);
+  }
+
+  const originValidation = validateSameOrigin(request);
+  if (!originValidation.ok) {
+    return errorResponse(originValidation.message, 403);
   }
 
   const body = (await request.json()) as CreateProfileBody;
@@ -59,7 +72,7 @@ export async function POST(request: Request) {
     .single<ProfileRow>();
 
   if (error) {
-    return errorResponse(error.message, 500);
+    return errorResponse("Failed to create profile.", 500, error);
   }
 
   const { error: promotionError } = await supabase.from("promotions").insert({
@@ -73,7 +86,7 @@ export async function POST(request: Request) {
   if (promotionError) {
     // Keep profile and promotion history in sync for first-time setup.
     await supabase.from("profiles").delete().eq("id", userId);
-    return errorResponse(`Failed to create initial promotion: ${promotionError.message}`, 500);
+    return errorResponse("Failed to create initial promotion.", 500, promotionError);
   }
 
   return NextResponse.json(mapProfileRow(data), { status: 201 });
@@ -84,6 +97,11 @@ export async function PATCH(request: Request) {
 
   if (!userId) {
     return errorResponse("Unauthorized.", 401);
+  }
+
+  const originValidation = validateSameOrigin(request);
+  if (!originValidation.ok) {
+    return errorResponse(originValidation.message, 403);
   }
 
   const body = (await request.json()) as UpdateProfileBody;
@@ -107,7 +125,7 @@ export async function PATCH(request: Request) {
     .single<ProfileRow>();
 
   if (error) {
-    return errorResponse(error.message, 500);
+    return errorResponse("Failed to update profile.", 500, error);
   }
 
   return NextResponse.json(mapProfileRow(data));

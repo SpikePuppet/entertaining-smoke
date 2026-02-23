@@ -1,6 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { BeltColor } from "@/lib/types";
+import { errorResponse } from "@/lib/api/error-response";
+import { validateSameOrigin } from "@/lib/security/origin";
 import { mapPromotionRow, type PromotionRow } from "@/lib/supabase/mappers";
 import { createClerkSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -10,10 +12,6 @@ type CreatePromotionBody = {
   date: string;
   notes?: string;
 };
-
-function errorResponse(message: string, status = 500) {
-  return NextResponse.json({ error: message }, { status });
-}
 
 export async function GET() {
   const { userId } = await auth();
@@ -31,7 +29,7 @@ export async function GET() {
     .returns<PromotionRow[]>();
 
   if (error) {
-    return errorResponse(error.message, 500);
+    return errorResponse("Failed to load promotions.", 500, error);
   }
 
   return NextResponse.json(data.map(mapPromotionRow));
@@ -42,6 +40,11 @@ export async function POST(request: Request) {
 
   if (!userId) {
     return errorResponse("Unauthorized.", 401);
+  }
+
+  const originValidation = validateSameOrigin(request);
+  if (!originValidation.ok) {
+    return errorResponse(originValidation.message, 403);
   }
 
   const body = (await request.json()) as CreatePromotionBody;
@@ -70,7 +73,7 @@ export async function POST(request: Request) {
     .single<PromotionRow>();
 
   if (error) {
-    return errorResponse(error.message, 500);
+    return errorResponse("Failed to create promotion.", 500, error);
   }
 
   const { error: profileUpdateError } = await supabase
@@ -82,7 +85,7 @@ export async function POST(request: Request) {
     .eq("id", userId);
 
   if (profileUpdateError) {
-    return errorResponse(profileUpdateError.message, 500);
+    return errorResponse("Failed to update profile after promotion.", 500, profileUpdateError);
   }
 
   return NextResponse.json(mapPromotionRow(data), { status: 201 });

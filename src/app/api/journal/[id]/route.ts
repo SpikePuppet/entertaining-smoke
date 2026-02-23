@@ -1,11 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { errorResponse } from "@/lib/api/error-response";
+import { validateSameOrigin } from "@/lib/security/origin";
 import { mapJournalEntryRow, type JournalEntryRow } from "@/lib/supabase/mappers";
 import { createClerkSupabaseServerClient } from "@/lib/supabase/server";
-
-function errorResponse(message: string, status = 500) {
-  return NextResponse.json({ error: message }, { status });
-}
 
 export async function GET(
   _request: Request,
@@ -27,7 +25,7 @@ export async function GET(
     .maybeSingle<JournalEntryRow>();
 
   if (error) {
-    return errorResponse(error.message, 500);
+    return errorResponse("Failed to load journal entry.", 500, error);
   }
 
   return NextResponse.json(data ? mapJournalEntryRow(data) : null);
@@ -43,6 +41,11 @@ export async function DELETE(
     return errorResponse("Unauthorized.", 401);
   }
 
+  const originValidation = validateSameOrigin(_request);
+  if (!originValidation.ok) {
+    return errorResponse(originValidation.message, 403);
+  }
+
   const { id } = await context.params;
   const supabase = await createClerkSupabaseServerClient();
   const { error } = await supabase
@@ -52,7 +55,7 @@ export async function DELETE(
     .eq("user_id", userId);
 
   if (error) {
-    return errorResponse(error.message, 500);
+    return errorResponse("Failed to delete journal entry.", 500, error);
   }
 
   return new NextResponse(null, { status: 204 });

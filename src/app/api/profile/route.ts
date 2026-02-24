@@ -23,7 +23,8 @@ type UpdateProfileBody = Partial<
 function buildInitialPromotionPayload(
   userId: string,
   belt: string,
-  stripes: number
+  stripes: number,
+  academyName: string | null
 ) {
   return {
     user_id: userId,
@@ -31,6 +32,7 @@ function buildInitialPromotionPayload(
     stripes,
     date: new Date().toISOString().slice(0, 10),
     notes: "Auto-created from profile creation.",
+    academy_name: academyName,
   };
 }
 
@@ -95,7 +97,8 @@ export async function POST(request: Request) {
   const initialPromotionPayload = buildInitialPromotionPayload(
     userId,
     payload.current_belt,
-    payload.current_stripes
+    payload.current_stripes,
+    payload.academy_name
   );
   const { error: promotionError } = await supabase
     .from("promotions")

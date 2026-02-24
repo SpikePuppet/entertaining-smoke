@@ -12,6 +12,7 @@ export type ProfileRow = {
 export type JournalEntryRow = {
   id: string;
   user_id: string;
+  belt_at_time: string | null;
   title: string;
   description: string;
   highlight_moves: string;
@@ -28,6 +29,7 @@ export type PromotionRow = {
   stripes: number;
   date: string;
   notes: string | null;
+  academy_name: string | null;
   created_at: string;
 };
 
@@ -46,6 +48,7 @@ export function mapJournalEntryRow(row: JournalEntryRow): JournalEntry {
   return {
     id: row.id,
     userId: row.user_id,
+    beltAtTime: (row.belt_at_time ?? "white") as BeltColor,
     title: row.title,
     description: row.description,
     highlightMoves: row.highlight_moves,
@@ -64,6 +67,7 @@ export function mapPromotionRow(row: PromotionRow): PromotionEntry {
     stripes: row.stripes,
     date: row.date,
     notes: row.notes ?? undefined,
+    academyName: row.academy_name ?? undefined,
     createdAt: row.created_at,
   };
 }

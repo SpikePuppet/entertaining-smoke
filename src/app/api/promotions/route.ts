@@ -11,6 +11,7 @@ type CreatePromotionBody = {
   stripes: number;
   date: string;
   notes?: string;
+  academyName?: string;
 };
 
 export async function GET() {
@@ -59,12 +60,23 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createClerkSupabaseServerClient();
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("academy_name")
+    .eq("id", userId)
+    .maybeSingle<{ academy_name: string | null }>();
+
+  if (profileError) {
+    return errorResponse("Failed to load profile for promotion.", 500, profileError);
+  }
+
   const payload = {
     user_id: userId,
     belt: body.belt,
     stripes: body.stripes,
     date: body.date,
     notes: body.notes?.trim() || null,
+    academy_name: body.academyName?.trim() || profile?.academy_name || null,
   };
 
   const { data, error } = await supabase

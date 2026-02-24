@@ -20,6 +20,7 @@ export interface UserProfile {
 export interface JournalEntry {
   id: string;
   userId: string;
+  beltAtTime: BeltColor;
   title: string;
   description: string;
   highlightMoves: string;
@@ -36,5 +37,6 @@ export interface PromotionEntry {
   stripes: number;
   date: string;
   notes?: string;
+  academyName?: string;
   createdAt: string;
 }

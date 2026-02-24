@@ -54,8 +54,19 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createClerkSupabaseServerClient();
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("current_belt")
+    .eq("id", userId)
+    .maybeSingle<{ current_belt: string }>();
+
+  if (profileError) {
+    return errorResponse("Failed to load profile for journal entry.", 500, profileError);
+  }
+
   const payload = {
     user_id: userId,
+    belt_at_time: profile?.current_belt ?? "white",
     title: body.title.trim(),
     description: body.description ?? "",
     highlight_moves: body.highlightMoves ?? "",

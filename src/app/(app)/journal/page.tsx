@@ -2,16 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import type { JournalEntry, UserProfile } from "@/lib/types";
-import { getJournalEntries, getProfile } from "@/lib/storage";
-import { getBeltColor } from "@/lib/belts";
+import type { JournalEntry } from "@/lib/types";
+import { getJournalEntries } from "@/lib/storage";
 import JournalCard from "@/components/JournalCard";
 import Breadcrumb from "@/components/Breadcrumb";
 import StateCard from "@/components/StateCard";
 
 export default function JournalListPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
@@ -24,10 +22,9 @@ export default function JournalListPage() {
       setLoadError(null);
 
       try {
-        const [e, p] = await Promise.all([getJournalEntries(), getProfile()]);
+        const e = await getJournalEntries();
         if (!isMounted) return;
         setEntries(e.sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
-        setProfile(p);
       } catch {
         if (!isMounted) return;
         setLoadError("We couldn't load your journal entries right now.");
@@ -67,8 +64,6 @@ export default function JournalListPage() {
     );
   }
 
-  const accentColor = profile ? getBeltColor(profile.currentBelt) : "#F5F5F5";
-
   return (
     <div className="max-w-3xl">
       <Breadcrumb items={[{ label: "Dashboard", href: "/" }, { label: "Journal" }]} />
@@ -103,11 +98,7 @@ export default function JournalListPage() {
       ) : (
         <div className="flex flex-col gap-3">
           {entries.map((entry) => (
-            <JournalCard
-              key={entry.id}
-              entry={entry}
-              accentColor={accentColor}
-            />
+            <JournalCard key={entry.id} entry={entry} />
           ))}
         </div>
       )}

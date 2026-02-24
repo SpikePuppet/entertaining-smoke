@@ -2,17 +2,80 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import type { UserProfile, JournalEntry } from "@/lib/types";
-import { getProfile, getJournalEntries } from "@/lib/storage";
+import type { UserProfile, JournalEntry, PromotionEntry } from "@/lib/types";
+import { getProfile, getJournalEntries, getPromotions } from "@/lib/storage";
 import { getBeltColor } from "@/lib/belts";
 import BeltBadge from "@/components/BeltBadge";
 import JournalCard from "@/components/JournalCard";
 import Breadcrumb from "@/components/Breadcrumb";
 import StateCard from "@/components/StateCard";
 
+type RecentItem =
+  | { type: "journal"; entry: JournalEntry }
+  | { type: "promotion"; promotion: PromotionEntry };
+
+function getRecentItemTimestamp(item: RecentItem): number {
+  if (item.type === "journal") {
+    const journalTimestamp = Date.parse(item.entry.createdAt);
+    return Number.isNaN(journalTimestamp) ? 0 : journalTimestamp;
+  }
+
+  const promotionDate = Date.parse(item.promotion.date);
+  if (!Number.isNaN(promotionDate)) {
+    return promotionDate;
+  }
+
+  const createdAtTimestamp = Date.parse(item.promotion.createdAt);
+  return Number.isNaN(createdAtTimestamp) ? 0 : createdAtTimestamp;
+}
+
+function getRecentItemCreatedAt(item: RecentItem): string {
+  return item.type === "journal"
+    ? item.entry.createdAt
+    : item.promotion.createdAt;
+}
+
+function PromotionRecentCard({ promotion }: { promotion: PromotionEntry }) {
+  const date = new Date(promotion.date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  return (
+    <Link href="/promotions" className="block group">
+      <div className="bg-surface border border-border rounded-lg p-4 pl-5 transition-all hover:border-border-strong hover:bg-surface/80 relative overflow-hidden">
+        <div
+          className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg"
+          style={{ backgroundColor: getBeltColor(promotion.belt) }}
+        />
+
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-fg-muted text-[11px] uppercase tracking-wide">
+              Promotion
+            </p>
+            <div className="mt-1">
+              <BeltBadge belt={promotion.belt} stripes={promotion.stripes} size="sm" />
+            </div>
+            {promotion.academyName && (
+              <p className="text-fg-muted text-xs mt-2 truncate">
+                {promotion.academyName}
+              </p>
+            )}
+          </div>
+          <span className="text-xs text-fg-dim whitespace-nowrap shrink-0">
+            {date}
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default function Dashboard() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
@@ -30,13 +93,33 @@ export default function Dashboard() {
 
         setProfile(p);
         if (!p) {
-          setEntries([]);
+          setRecentItems([]);
           return;
         }
 
-        const e = await getJournalEntries();
+        const [entries, promotions] = await Promise.all([
+          getJournalEntries(),
+          getPromotions(),
+        ]);
         if (!isMounted) return;
-        setEntries(e.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5));
+
+        const combined: RecentItem[] = [
+          ...entries.map((entry) => ({ type: "journal" as const, entry })),
+          ...promotions.map((promotion) => ({
+            type: "promotion" as const,
+            promotion,
+          })),
+        ];
+
+        setRecentItems(
+          combined
+            .sort((a, b) => {
+              const dateDiff = getRecentItemTimestamp(b) - getRecentItemTimestamp(a);
+              if (dateDiff !== 0) return dateDiff;
+              return getRecentItemCreatedAt(b).localeCompare(getRecentItemCreatedAt(a));
+            })
+            .slice(0, 5)
+        );
       } catch {
         if (!isMounted) return;
         setLoadError("We couldn't load your dashboard right now.");
@@ -90,8 +173,6 @@ export default function Dashboard() {
     );
   }
 
-  const accentColor = getBeltColor(profile.currentBelt);
-
   return (
     <div className="max-w-3xl">
       <Breadcrumb items={[{ label: "Dashboard" }]} />
@@ -120,8 +201,8 @@ export default function Dashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 mb-8">
         <div className="bg-surface border border-border rounded-lg p-4">
-          <p className="text-2xl font-bold text-fg">{entries.length}</p>
-          <p className="text-xs text-fg-muted mt-1">Recent Sessions</p>
+          <p className="text-2xl font-bold text-fg">{recentItems.length}</p>
+          <p className="text-xs text-fg-muted mt-1">Recent Activity</p>
         </div>
         <div className="bg-surface border border-border rounded-lg p-4">
           <p className="text-2xl font-bold text-fg">
@@ -134,34 +215,53 @@ export default function Dashboard() {
       {/* Recent Entries */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-fg">Recent Entries</h2>
-        <Link
-          href="/journal/new"
-          className="text-xs px-3 py-1.5 rounded-md bg-active text-fg-secondary hover:text-fg hover:bg-hover transition-colors border border-border-strong"
-        >
-          + New Entry
-        </Link>
-      </div>
-
-      {entries.length === 0 ? (
-        <div className="bg-surface border border-border rounded-lg p-8 text-center">
-          <p className="text-fg-muted text-sm mb-4">
-            No journal entries yet. Start tracking your training!
-          </p>
+        <div className="flex items-center gap-2">
           <Link
             href="/journal/new"
-            className="text-sm px-4 py-2 rounded-md bg-active text-fg hover:bg-hover transition-colors border border-border-strong"
+            className="text-xs px-3 py-1.5 rounded-md bg-active text-fg-secondary hover:text-fg hover:bg-hover transition-colors border border-border-strong"
           >
-            Create Your First Entry
+            + New Entry
           </Link>
+          <Link
+            href="/promotions/new"
+            className="text-xs px-3 py-1.5 rounded-md bg-active text-fg-secondary hover:text-fg hover:bg-hover transition-colors border border-border-strong"
+          >
+            + New Promotion
+          </Link>
+        </div>
+      </div>
+
+      {recentItems.length === 0 ? (
+        <div className="bg-surface border border-border rounded-lg p-8 text-center">
+          <p className="text-fg-muted text-sm mb-4">
+            No entries or promotions yet. Start tracking your training!
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/journal/new"
+              className="text-sm px-4 py-2 rounded-md bg-active text-fg hover:bg-hover transition-colors border border-border-strong"
+            >
+              Create Entry
+            </Link>
+            <Link
+              href="/promotions/new"
+              className="text-sm px-4 py-2 rounded-md bg-active text-fg hover:bg-hover transition-colors border border-border-strong"
+            >
+              Record Promotion
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {entries.map((entry) => (
-            <JournalCard
-              key={entry.id}
-              entry={entry}
-              accentColor={accentColor}
-            />
+          {recentItems.map((item) => (
+            item.type === "journal" ? (
+              <JournalCard key={`journal-${item.entry.id}`} entry={item.entry} />
+            ) : (
+              <PromotionRecentCard
+                key={`promotion-${item.promotion.id}`}
+                promotion={item.promotion}
+              />
+            )
           ))}
         </div>
       )}

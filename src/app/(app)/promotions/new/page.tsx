@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { BeltColor } from "@/lib/types";
 import { BELTS, getMaxStripes } from "@/lib/belts";
-import { createPromotion } from "@/lib/storage";
+import { createPromotion, getProfile } from "@/lib/storage";
 import Breadcrumb from "@/components/Breadcrumb";
 
 export default function NewPromotionPage() {
@@ -14,9 +14,30 @@ export default function NewPromotionPage() {
   const [stripes, setStripes] = useState(0);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
+  const [academyName, setAcademyName] = useState("");
   const [saving, setSaving] = useState(false);
 
   const maxStripes = getMaxStripes(belt);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProfileAcademy() {
+      try {
+        const profile = await getProfile();
+        if (!isMounted || !profile?.academyName) return;
+        setAcademyName(profile.academyName);
+      } catch {
+        // Ignore prefill errors and keep field empty/editable.
+      }
+    }
+
+    loadProfileAcademy();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -26,6 +47,7 @@ export default function NewPromotionPage() {
       stripes: Math.min(stripes, maxStripes),
       date,
       notes: notes.trim() || undefined,
+      academyName: academyName.trim() || undefined,
     });
     router.push("/promotions");
   }
@@ -131,6 +153,24 @@ export default function NewPromotionPage() {
             placeholder="Any notes about this promotion..."
             rows={3}
             className="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-fg text-sm placeholder:text-fg-dim focus:outline-none focus:border-border-focus transition-colors resize-none"
+          />
+        </div>
+
+        {/* School */}
+        <div>
+          <label
+            htmlFor="academyName"
+            className="block text-sm font-medium text-fg-secondary mb-2"
+          >
+            School / Academy
+          </label>
+          <input
+            id="academyName"
+            type="text"
+            value={academyName}
+            onChange={(e) => setAcademyName(e.target.value)}
+            placeholder="Where did this promotion happen?"
+            className="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-fg text-sm placeholder:text-fg-dim focus:outline-none focus:border-border-focus transition-colors"
           />
         </div>
 

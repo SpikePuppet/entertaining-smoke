@@ -102,7 +102,7 @@ export async function getPromotions(): Promise<PromotionEntry[]> {
 }
 
 export async function createPromotion(
-  data: Pick<PromotionEntry, "belt" | "stripes" | "date" | "notes">
+  data: Pick<PromotionEntry, "belt" | "stripes" | "date" | "notes" | "academyName">
 ): Promise<PromotionEntry> {
   return request<PromotionEntry>("/api/promotions", {
     method: "POST",

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
 import type { PromotionEntry } from "@/lib/types";
 import { getPromotions } from "@/lib/storage";
 import PromotionCard from "@/components/PromotionCard";
@@ -9,21 +10,38 @@ import Breadcrumb from "@/components/Breadcrumb";
 import StateCard from "@/components/StateCard";
 
 export default function PromotionsPage() {
+  const { userId, isLoaded } = useAuth();
   const [promotions, setPromotions] = useState<PromotionEntry[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    if (!isLoaded) return;
+
     let isMounted = true;
 
     async function load() {
       setLoading(true);
       setLoadError(null);
+      setPromotions([]);
+
+      if (!userId) {
+        if (isMounted) {
+          setLoading(false);
+        }
+        return;
+      }
 
       try {
         const p = await getPromotions();
         if (!isMounted) return;
+
+        if (p.some((promotion) => promotion.userId !== userId)) {
+          setLoadError("Account mismatch detected. Please sign out and sign back in.");
+          return;
+        }
+
         setPromotions(
           [...p].sort((a, b) => {
             const dateDiff = b.date.localeCompare(a.date);
@@ -46,7 +64,7 @@ export default function PromotionsPage() {
     return () => {
       isMounted = false;
     };
-  }, [reloadKey]);
+  }, [reloadKey, userId, isLoaded]);
 
   if (loading) {
     return (

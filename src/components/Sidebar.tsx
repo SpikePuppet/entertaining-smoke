@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { SignOutButton } from "@clerk/nextjs";
+import { SignOutButton, useAuth } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { UserProfile } from "@/lib/types";
@@ -34,29 +34,45 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { userId, isLoaded } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoadError, setProfileLoadError] = useState(false);
 
   // Re-check profile on pathname change (in case it was just created).
   useEffect(() => {
+    if (!isLoaded) return;
     let isMounted = true;
-
-    void getProfile()
-      .then((currentProfile) => {
+    const loadProfile = async () => {
+      if (!userId) {
         if (!isMounted) return;
+        setProfile(null);
+        setProfileLoadError(false);
+        return;
+      }
+
+      try {
+        const currentProfile = await getProfile();
+        if (!isMounted) return;
+        if (currentProfile && currentProfile.id !== userId) {
+          setProfile(null);
+          setProfileLoadError(true);
+          return;
+        }
         setProfile(currentProfile);
         setProfileLoadError(false);
-      })
-      .catch(() => {
+      } catch {
         if (!isMounted) return;
         setProfile(null);
         setProfileLoadError(true);
-      });
+      }
+    };
+
+    void loadProfile();
 
     return () => {
       isMounted = false;
     };
-  }, [pathname]);
+  }, [pathname, userId, isLoaded]);
 
   return (
     <aside className="fixed left-0 top-0 h-full w-64 bg-surface border-r border-border flex flex-col z-50">

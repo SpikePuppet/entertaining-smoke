@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
 import type { JournalEntry } from "@/lib/types";
 import { getJournalEntries } from "@/lib/storage";
 import JournalCard from "@/components/JournalCard";
@@ -9,21 +10,38 @@ import Breadcrumb from "@/components/Breadcrumb";
 import StateCard from "@/components/StateCard";
 
 export default function JournalListPage() {
+  const { userId, isLoaded } = useAuth();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    if (!isLoaded) return;
+
     let isMounted = true;
 
     async function load() {
       setLoading(true);
       setLoadError(null);
+      setEntries([]);
+
+      if (!userId) {
+        if (isMounted) {
+          setLoading(false);
+        }
+        return;
+      }
 
       try {
         const e = await getJournalEntries();
         if (!isMounted) return;
+
+        if (e.some((entry) => entry.userId !== userId)) {
+          setLoadError("Account mismatch detected. Please sign out and sign back in.");
+          return;
+        }
+
         setEntries(e.sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
       } catch {
         if (!isMounted) return;
@@ -40,7 +58,7 @@ export default function JournalListPage() {
     return () => {
       isMounted = false;
     };
-  }, [reloadKey]);
+  }, [reloadKey, userId, isLoaded]);
 
   if (loading) {
     return (

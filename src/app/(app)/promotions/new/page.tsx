@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
 import type { BeltColor } from "@/lib/types";
 import { BELTS, getMaxStripes } from "@/lib/belts";
 import { getLocalDateInputValue } from "@/lib/dates";
@@ -11,6 +12,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 
 export default function NewPromotionPage() {
   const router = useRouter();
+  const { userId, isLoaded } = useAuth();
   const [belt, setBelt] = useState<BeltColor>("white");
   const [stripes, setStripes] = useState(0);
   const [date, setDate] = useState(getLocalDateInputValue);
@@ -21,12 +23,21 @@ export default function NewPromotionPage() {
   const maxStripes = getMaxStripes(belt);
 
   useEffect(() => {
+    if (!isLoaded) return;
     let isMounted = true;
 
     async function loadProfileAcademy() {
+      if (!userId) {
+        if (!isMounted) return;
+        setAcademyName("");
+        return;
+      }
+
       try {
         const profile = await getProfile();
-        if (!isMounted || !profile?.academyName) return;
+        if (!isMounted) return;
+        if (profile && profile.id !== userId) return;
+        if (!profile?.academyName) return;
         setAcademyName(profile.academyName);
       } catch {
         // Ignore prefill errors and keep field empty/editable.
@@ -38,7 +49,7 @@ export default function NewPromotionPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [userId, isLoaded]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();

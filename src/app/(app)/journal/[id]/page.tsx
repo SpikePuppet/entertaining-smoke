@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import type { JournalEntry } from "@/lib/types";
 import { getJournalEntry, deleteJournalEntry } from "@/lib/storage";
 import TipTapViewer from "@/components/TipTapViewer";
@@ -23,21 +24,36 @@ function Section({ label, content }: { label: string; content: string }) {
 export default function JournalDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { userId, isLoaded } = useAuth();
   const [entry, setEntry] = useState<JournalEntry | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    if (!isLoaded) return;
+
     let isMounted = true;
 
     async function load() {
       setLoading(true);
       setLoadError(null);
+      setEntry(null);
+
+      if (!userId) {
+        if (isMounted) {
+          setLoading(false);
+        }
+        return;
+      }
 
       try {
         const e = await getJournalEntry(params.id as string);
         if (!isMounted) return;
+        if (e && e.userId !== userId) {
+          setLoadError("Account mismatch detected. Please sign out and sign back in.");
+          return;
+        }
         setEntry(e);
       } catch {
         if (!isMounted) return;
@@ -54,7 +70,7 @@ export default function JournalDetailPage() {
     return () => {
       isMounted = false;
     };
-  }, [params.id, reloadKey]);
+  }, [params.id, reloadKey, userId, isLoaded]);
 
   async function handleDelete() {
     if (!entry) return;

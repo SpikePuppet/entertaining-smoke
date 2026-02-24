@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
 import type { UserProfile, JournalEntry, PromotionEntry } from "@/lib/types";
 import { getProfile, getJournalEntries, getPromotions } from "@/lib/storage";
 import { getBeltColor } from "@/lib/belts";
@@ -61,6 +62,7 @@ function PromotionRecentCard({ promotion }: { promotion: PromotionEntry }) {
 }
 
 export default function Dashboard() {
+  const { userId, isLoaded } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -68,15 +70,31 @@ export default function Dashboard() {
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    if (!isLoaded) return;
+
     let isMounted = true;
 
     async function load() {
       setLoading(true);
       setLoadError(null);
+      setProfile(null);
+      setRecentItems([]);
+
+      if (!userId) {
+        if (isMounted) {
+          setLoading(false);
+        }
+        return;
+      }
 
       try {
         const p = await getProfile();
         if (!isMounted) return;
+
+        if (p && p.id !== userId) {
+          setLoadError("Account mismatch detected. Please sign out and sign back in.");
+          return;
+        }
 
         setProfile(p);
         if (!p) {
@@ -89,6 +107,14 @@ export default function Dashboard() {
           getPromotions(),
         ]);
         if (!isMounted) return;
+
+        if (
+          entries.some((entry) => entry.userId !== userId) ||
+          promotions.some((promotion) => promotion.userId !== userId)
+        ) {
+          setLoadError("Account mismatch detected. Please sign out and sign back in.");
+          return;
+        }
 
         const combined: RecentItem[] = [
           ...entries.map((entry) => ({ type: "journal" as const, entry })),
@@ -124,7 +150,7 @@ export default function Dashboard() {
     return () => {
       isMounted = false;
     };
-  }, [reloadKey]);
+  }, [reloadKey, userId, isLoaded]);
 
   if (loading) {
     return (

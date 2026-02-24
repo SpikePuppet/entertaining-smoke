@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import type { UserProfile, BeltColor } from "@/lib/types";
 import { getProfile, createProfile, updateProfile } from "@/lib/storage";
 import { BELTS, getMaxStripes } from "@/lib/belts";
@@ -11,6 +12,7 @@ import StateCard from "@/components/StateCard";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { userId, isLoaded } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [name, setName] = useState("");
   const [academyName, setAcademyName] = useState("");
@@ -25,17 +27,36 @@ export default function ProfilePage() {
   const maxStripes = getMaxStripes(belt);
 
   useEffect(() => {
+    if (!isLoaded) return;
+
     let isMounted = true;
 
     async function load() {
       setLoading(true);
       setLoadError(null);
+      setProfile(null);
+
+      if (!userId) {
+        if (!isMounted) return;
+        setName("");
+        setAcademyName("");
+        setBelt("white");
+        setStripes(0);
+        setIsNew(true);
+        setLoading(false);
+        return;
+      }
 
       try {
         const p = await getProfile();
         if (!isMounted) return;
 
         if (p) {
+          if (p.id !== userId) {
+            setLoadError("Account mismatch detected. Please sign out and sign back in.");
+            setIsNew(true);
+            return;
+          }
           setProfile(p);
           setName(p.name);
           setAcademyName(p.academyName ?? "");
@@ -65,7 +86,7 @@ export default function ProfilePage() {
     return () => {
       isMounted = false;
     };
-  }, [reloadKey]);
+  }, [reloadKey, userId, isLoaded]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();

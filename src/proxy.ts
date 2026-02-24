@@ -10,13 +10,35 @@ async function hasProfile(
   getToken: (options?: { template?: string }) => Promise<string | null>
 ): Promise<boolean> {
   const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_KEY ?? process.env.SUPABASE_ANON_KEY;
+  const supabaseKey = process.env.SUPABASE_ANON_KEY ?? process.env.SUPABASE_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
     return true;
   }
 
-  const token = await getToken();
+  const template = process.env.CLERK_SUPABASE_JWT_TEMPLATE;
+  let token: string | null;
+
+  if (!template) {
+    token = await getToken();
+  } else {
+    try {
+      token = await getToken({ template });
+    } catch (error) {
+      // If a configured template is missing, fall back to Clerk's default session token.
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "status" in error &&
+        (error as { status?: number }).status === 404
+      ) {
+        token = await getToken();
+      } else {
+        throw error;
+      }
+    }
+  }
+
   if (!token) {
     return false;
   }
@@ -30,6 +52,7 @@ async function hasProfile(
     const response = await fetch(url.toString(), {
       method: "GET",
       headers: {
+        Accept: "application/json",
         apikey: supabaseKey,
         Authorization: `Bearer ${token}`,
       },
@@ -37,7 +60,11 @@ async function hasProfile(
     });
 
     if (!response.ok) {
-      console.error("Failed to check profile during middleware onboarding gate.");
+      const responseBody = await response.text();
+      console.error("Failed to check profile during middleware onboarding gate.", {
+        status: response.status,
+        body: responseBody.slice(0, 500),
+      });
       return true;
     }
 

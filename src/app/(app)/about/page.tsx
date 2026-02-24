@@ -8,7 +8,7 @@ export default function AboutPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-fg mb-1">About</h1>
         <p className="text-fg-muted text-sm">
-          Ground Karate is a BJJ training journal for tracking sessions,
+          Exciting Smoke is a BJJ training journal for tracking sessions,
           techniques, and belt promotions.
         </p>
       </div>

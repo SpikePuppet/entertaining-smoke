@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ground Karate - BJJ Training Journal",
+  title: "Exciting Smoke - BJJ Training Journal",
   description: "Track your Brazilian Jiu-Jitsu training, promotions, and progress",
 };
 

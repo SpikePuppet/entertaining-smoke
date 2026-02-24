@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { BeltColor } from "@/lib/types";
 import { BELTS, getMaxStripes } from "@/lib/belts";
+import { getLocalDateInputValue } from "@/lib/dates";
 import { createPromotion, getProfile } from "@/lib/storage";
 import Breadcrumb from "@/components/Breadcrumb";
 
@@ -12,7 +13,7 @@ export default function NewPromotionPage() {
   const router = useRouter();
   const [belt, setBelt] = useState<BeltColor>("white");
   const [stripes, setStripes] = useState(0);
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(getLocalDateInputValue);
   const [notes, setNotes] = useState("");
   const [academyName, setAcademyName] = useState("");
   const [saving, setSaving] = useState(false);

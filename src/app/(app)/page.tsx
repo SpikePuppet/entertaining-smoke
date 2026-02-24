@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { UserProfile, JournalEntry, PromotionEntry } from "@/lib/types";
 import { getProfile, getJournalEntries, getPromotions } from "@/lib/storage";
 import { getBeltColor } from "@/lib/belts";
+import { formatDateOnly } from "@/lib/dates";
 import BeltBadge from "@/components/BeltBadge";
 import JournalCard from "@/components/JournalCard";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -15,28 +16,14 @@ type RecentItem =
   | { type: "promotion"; promotion: PromotionEntry };
 
 function getRecentItemTimestamp(item: RecentItem): number {
-  if (item.type === "journal") {
-    const journalTimestamp = Date.parse(item.entry.createdAt);
-    return Number.isNaN(journalTimestamp) ? 0 : journalTimestamp;
-  }
-
-  const promotionDate = Date.parse(item.promotion.date);
-  if (!Number.isNaN(promotionDate)) {
-    return promotionDate;
-  }
-
-  const createdAtTimestamp = Date.parse(item.promotion.createdAt);
-  return Number.isNaN(createdAtTimestamp) ? 0 : createdAtTimestamp;
-}
-
-function getRecentItemCreatedAt(item: RecentItem): string {
-  return item.type === "journal"
-    ? item.entry.createdAt
-    : item.promotion.createdAt;
+  const createdAt =
+    item.type === "journal" ? item.entry.createdAt : item.promotion.createdAt;
+  const timestamp = Date.parse(createdAt);
+  return Number.isNaN(timestamp) ? 0 : timestamp;
 }
 
 function PromotionRecentCard({ promotion }: { promotion: PromotionEntry }) {
-  const date = new Date(promotion.date).toLocaleDateString("en-US", {
+  const date = formatDateOnly(promotion.date, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -114,9 +101,11 @@ export default function Dashboard() {
         setRecentItems(
           combined
             .sort((a, b) => {
-              const dateDiff = getRecentItemTimestamp(b) - getRecentItemTimestamp(a);
-              if (dateDiff !== 0) return dateDiff;
-              return getRecentItemCreatedAt(b).localeCompare(getRecentItemCreatedAt(a));
+              const createdAtDiff = getRecentItemTimestamp(b) - getRecentItemTimestamp(a);
+              if (createdAtDiff !== 0) return createdAtDiff;
+              const aId = a.type === "journal" ? a.entry.id : a.promotion.id;
+              const bId = b.type === "journal" ? b.entry.id : b.promotion.id;
+              return bId.localeCompare(aId);
             })
             .slice(0, 5)
         );

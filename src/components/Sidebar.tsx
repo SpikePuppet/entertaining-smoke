@@ -61,8 +61,9 @@ export default function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 h-full w-64 bg-surface border-r border-border flex flex-col z-50">
       <div className="p-6 border-b border-border">
-        <h1 className="text-lg font-bold text-fg tracking-tight">
-          Ground Karate
+        <h1 className="text-lg font-bold text-fg tracking-tight flex items-center gap-2">
+          <span>🥋</span>
+          Exciting Smoke
         </h1>
         <p className="text-xs text-fg-muted mt-0.5">BJJ Training Journal</p>
       </div>

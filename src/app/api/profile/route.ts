@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { BeltColor } from "@/lib/types";
 import { errorResponse } from "@/lib/api/error-response";
+import { getLocalDateInputValue } from "@/lib/dates";
 import { validateSameOrigin } from "@/lib/security/origin";
 import { mapProfileRow, type ProfileRow } from "@/lib/supabase/mappers";
 import {
@@ -30,7 +31,7 @@ function buildInitialPromotionPayload(
     user_id: userId,
     belt,
     stripes,
-    date: new Date().toISOString().slice(0, 10),
+    date: getLocalDateInputValue(),
     notes: "Auto-created from profile creation.",
     academy_name: academyName,
   };

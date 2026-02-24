@@ -125,7 +125,7 @@ export default function JournalDetailPage() {
       <div className="mt-8 pt-6 border-t border-border">
         <button
           onClick={handleDelete}
-          className="text-xs text-fg-dim hover:text-red-400 transition-colors"
+          className="text-xs px-3 py-1.5 rounded-md border border-red-400/30 text-red-400 hover:bg-red-400/10 hover:border-red-400/50 transition-colors"
         >
           Delete Entry
         </button>

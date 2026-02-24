@@ -1,6 +1,7 @@
 "use client";
 
 import type { PromotionEntry } from "@/lib/types";
+import { formatDateOnly } from "@/lib/dates";
 import BeltBadge from "./BeltBadge";
 
 interface PromotionCardProps {
@@ -12,7 +13,7 @@ export default function PromotionCard({
   promotion,
   isLast = false,
 }: PromotionCardProps) {
-  const date = new Date(promotion.date).toLocaleDateString("en-US", {
+  const date = formatDateOnly(promotion.date, {
     month: "long",
     day: "numeric",
     year: "numeric",

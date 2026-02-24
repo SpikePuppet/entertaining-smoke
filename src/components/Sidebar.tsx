@@ -38,6 +38,12 @@ export default function Sidebar() {
   const { user } = useUser();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoadError, setProfileLoadError] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Close sidebar on route change (handles nav link taps on mobile)
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
 
   // Re-check profile on pathname change (in case it was just created).
   useEffect(() => {
@@ -76,74 +82,120 @@ export default function Sidebar() {
   }, [pathname, userId, isLoaded]);
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 bg-surface border-r border-border flex flex-col z-50">
-      <div className="p-6 border-b border-border">
-        <h1 className="text-lg font-bold text-fg tracking-tight flex items-center gap-2">
+    <>
+      {/* Mobile top bar */}
+      <div className="fixed top-0 left-0 right-0 h-14 bg-surface border-b border-border flex items-center px-4 z-40 md:hidden">
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="p-1.5 -ml-1.5 text-fg-tertiary hover:text-fg transition-colors"
+          aria-label="Open menu"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M3 5h14a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm0 6h14a1 1 0 1 0 0-2H3a1 1 0 1 0 0 2Zm0 6h14a1 1 0 1 0 0-2H3a1 1 0 1 0 0 2Z" />
+          </svg>
+        </button>
+        <h1 className="ml-3 text-lg font-bold text-fg tracking-tight flex items-center gap-2">
           <span>🥋</span>
           Exciting Smoke
         </h1>
-        <p className="text-xs text-fg-muted mt-0.5">BJJ Training Journal</p>
       </div>
 
-      {profile && (
-        <div className="px-6 py-4 border-b border-border">
-          <p className="text-xs text-fg-muted mb-2 uppercase tracking-wider">
-            Current Rank
-          </p>
-          <BeltBadge
-            belt={profile.currentBelt}
-            stripes={profile.currentStripes}
-            size="sm"
-          />
-        </div>
+      {/* Backdrop (mobile only) */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsOpen(false)}
+        />
       )}
 
-      <nav className="flex-1 px-3 py-4">
-        {NAV_ITEMS.map((item) => {
-          const isActive =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-1 ${
-                isActive
-                  ? "bg-active text-fg"
-                  : "text-fg-tertiary hover:text-fg hover:bg-active/50"
-              }`}
-            >
-              <Icon name={item.icon} />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="px-3 py-4 border-t border-border">
-        <p className="text-xs text-fg-dim px-3 mb-0.5">
-          {profileLoadError ? "Profile unavailable" : profile?.name ?? "Set up your profile"}
-        </p>
-        {user?.primaryEmailAddress?.emailAddress && (
-          <p className="text-xs text-fg-dim px-3 mb-1 truncate">
-            {user.primaryEmailAddress.emailAddress}
-          </p>
-        )}
-        <ThemeToggle />
-        <SignOutButton>
+      {/* Sidebar */}
+      <aside
+        className={`fixed left-0 top-0 h-full w-64 bg-surface border-r border-border flex flex-col z-50 transition-transform duration-200 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
+      >
+        <div className="p-6 border-b border-border flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-bold text-fg tracking-tight flex items-center gap-2">
+              <span>🥋</span>
+              Exciting Smoke
+            </h1>
+            <p className="text-xs text-fg-muted mt-0.5">BJJ Training Journal</p>
+          </div>
+          {/* Close button (mobile only) */}
           <button
             type="button"
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-fg-tertiary hover:text-fg hover:bg-active/50 transition-colors"
+            onClick={() => setIsOpen(false)}
+            className="p-1.5 -mr-1.5 text-fg-tertiary hover:text-fg transition-colors md:hidden"
+            aria-label="Close menu"
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M8 1a1 1 0 0 1 1 1v5a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1ZM4.35 3.76a1 1 0 0 1-.11 1.41A5 5 0 1 0 13 8a5 5 0 0 0-2.24-4.17 1 1 0 1 1 1.11-1.66A7 7 0 1 1 3.76 3.24a1 1 0 0 1 .59.52Z" />
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M5.293 5.293a1 1 0 0 1 1.414 0L10 8.586l3.293-3.293a1 1 0 1 1 1.414 1.414L11.414 10l3.293 3.293a1 1 0 0 1-1.414 1.414L10 11.414l-3.293 3.293a1 1 0 0 1-1.414-1.414L8.586 10 5.293 6.707a1 1 0 0 1 0-1.414Z" />
             </svg>
-            Sign Out
           </button>
-        </SignOutButton>
-        <p className="text-xs text-fg-dim px-3 mt-3">&copy; 2026 Rhys Johns</p>
-      </div>
-    </aside>
+        </div>
+
+        {profile && (
+          <div className="px-6 py-4 border-b border-border">
+            <p className="text-xs text-fg-muted mb-2 uppercase tracking-wider">
+              Current Rank
+            </p>
+            <BeltBadge
+              belt={profile.currentBelt}
+              stripes={profile.currentStripes}
+              size="sm"
+            />
+          </div>
+        )}
+
+        <nav className="flex-1 px-3 py-4">
+          {NAV_ITEMS.map((item) => {
+            const isActive =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-1 ${
+                  isActive
+                    ? "bg-active text-fg"
+                    : "text-fg-tertiary hover:text-fg hover:bg-active/50"
+                }`}
+              >
+                <Icon name={item.icon} />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="px-3 py-4 border-t border-border">
+          <p className="text-xs text-fg-dim px-3 mb-0.5">
+            {profileLoadError ? "Profile unavailable" : profile?.name ?? "Set up your profile"}
+          </p>
+          {user?.primaryEmailAddress?.emailAddress && (
+            <p className="text-xs text-fg-dim px-3 mb-1 truncate">
+              {user.primaryEmailAddress.emailAddress}
+            </p>
+          )}
+          <ThemeToggle />
+          <SignOutButton>
+            <button
+              type="button"
+              className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-fg-tertiary hover:text-fg hover:bg-active/50 transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 1a1 1 0 0 1 1 1v5a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1ZM4.35 3.76a1 1 0 0 1-.11 1.41A5 5 0 1 0 13 8a5 5 0 0 0-2.24-4.17 1 1 0 1 1 1.11-1.66A7 7 0 1 1 3.76 3.24a1 1 0 0 1 .59.52Z" />
+              </svg>
+              Sign Out
+            </button>
+          </SignOutButton>
+          <p className="text-xs text-fg-dim px-3 mt-3">&copy; 2026 Rhys Johns</p>
+        </div>
+      </aside>
+    </>
   );
 }

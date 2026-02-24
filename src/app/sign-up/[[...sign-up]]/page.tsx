@@ -3,7 +3,7 @@ import { dark } from "@clerk/themes";
 
 export default function SignUpPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-950">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-950 px-4">
       <div className="flex flex-col items-center gap-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-zinc-100 flex items-center justify-center gap-2"><span>🥋</span> Exciting Smoke</h1>

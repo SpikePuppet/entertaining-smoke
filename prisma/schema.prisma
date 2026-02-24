@@ -24,6 +24,7 @@ model JournalEntry {
   id             String   @id @default(dbgenerated("(extensions.gen_random_uuid())::text"))
   user           Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String   @default(dbgenerated("(current_setting('request.jwt.claims', true)::json ->> 'sub')")) @map("user_id")
+  beltAtTime     String   @default("white") @map("belt_at_time")
   title          String
   description    String   @default("")
   highlightMoves String   @default("")  @map("highlight_moves")
@@ -44,6 +45,7 @@ model Promotion {
   stripes   Int      @default(0)
   date      DateTime @db.Date
   notes     String?
+  academyName String? @map("academy_name")
   createdAt DateTime @default(now()) @map("created_at")
 
   @@index([userId])

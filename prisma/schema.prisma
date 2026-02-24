@@ -13,7 +13,7 @@ model Profile {
   academyName    String?         @map("academy_name")
   currentBelt    String          @default("white")  @map("current_belt")
   currentStripes Int             @default(0)        @map("current_stripes")
-  createdAt      DateTime        @default(now())    @map("created_at")
+  createdAt      DateTime        @default(now())    @db.Timestamptz(3) @map("created_at")
   journalEntries JournalEntry[]
   promotions     Promotion[]
 
@@ -30,8 +30,8 @@ model JournalEntry {
   highlightMoves String   @default("")  @map("highlight_moves")
   whatWentRight  String   @default("")  @map("what_went_right")
   whatToImprove  String   @default("")  @map("what_to_improve")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+  createdAt      DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @db.Timestamptz(3) @map("updated_at")
 
   @@index([userId])
   @@map("journal_entries")
@@ -46,7 +46,7 @@ model Promotion {
   date      DateTime @db.Date
   notes     String?
   academyName String? @map("academy_name")
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
 
   @@index([userId])
   @@map("promotions")

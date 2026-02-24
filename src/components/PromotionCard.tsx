@@ -29,7 +29,14 @@ export default function PromotionCard({
       {/* Content */}
       <div className="pb-8 min-w-0">
         <p className="text-xs text-fg-muted mb-2">{date}</p>
-        <BeltBadge belt={promotion.belt} stripes={promotion.stripes} size="sm" />
+        <div className="flex flex-wrap items-center gap-2">
+          <BeltBadge belt={promotion.belt} stripes={promotion.stripes} size="sm" />
+          {promotion.academyName && (
+            <span className="text-xs text-fg-muted">
+              at {promotion.academyName}
+            </span>
+          )}
+        </div>
         {promotion.notes && (
           <p className="text-sm text-fg-tertiary mt-2">{promotion.notes}</p>
         )}

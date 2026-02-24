@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import type { JournalEntry } from "@/lib/types";
+import { getBeltColor } from "@/lib/belts";
 
 interface JournalCardProps {
   entry: JournalEntry;
-  accentColor?: string;
 }
 
 function stripHtml(html: string): string {
@@ -17,11 +17,11 @@ function stripHtml(html: string): string {
 
 export default function JournalCard({
   entry,
-  accentColor = "#F5F5F5",
 }: JournalCardProps) {
   const plainDesc = stripHtml(entry.description);
   const truncated =
     plainDesc.length > 120 ? plainDesc.slice(0, 120) + "..." : plainDesc;
+  const accentColor = getBeltColor(entry.beltAtTime);
 
   const date = new Date(entry.createdAt).toLocaleDateString("en-US", {
     month: "short",

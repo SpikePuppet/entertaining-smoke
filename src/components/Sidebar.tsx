@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { SignOutButton, useAuth } from "@clerk/nextjs";
+import { SignOutButton, useAuth, useUser } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { UserProfile } from "@/lib/types";
@@ -35,6 +35,7 @@ const NAV_ITEMS = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { userId, isLoaded } = useAuth();
+  const { user } = useUser();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoadError, setProfileLoadError] = useState(false);
 
@@ -121,9 +122,14 @@ export default function Sidebar() {
       </nav>
 
       <div className="px-3 py-4 border-t border-border">
-        <p className="text-xs text-fg-dim px-3 mb-1">
+        <p className="text-xs text-fg-dim px-3 mb-0.5">
           {profileLoadError ? "Profile unavailable" : profile?.name ?? "Set up your profile"}
         </p>
+        {user?.primaryEmailAddress?.emailAddress && (
+          <p className="text-xs text-fg-dim px-3 mb-1 truncate">
+            {user.primaryEmailAddress.emailAddress}
+          </p>
+        )}
         <ThemeToggle />
         <SignOutButton>
           <button

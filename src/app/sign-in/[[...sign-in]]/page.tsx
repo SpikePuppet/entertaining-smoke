@@ -6,7 +6,7 @@ export default function SignInPage() {
     <div className="flex min-h-screen items-center justify-center bg-zinc-950">
       <div className="flex flex-col items-center gap-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-zinc-100">Exciting Smoke</h1>
+          <h1 className="text-3xl font-bold text-zinc-100 flex items-center justify-center gap-2"><span>🥋</span> Exciting Smoke</h1>
           <p className="mt-1 text-zinc-400">BJJ Training Journal</p>
         </div>
         <SignIn

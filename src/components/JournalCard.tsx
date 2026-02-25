@@ -19,9 +19,9 @@ export default function JournalCard({
   entry,
 }: JournalCardProps) {
   const plainDesc = stripHtml(entry.description);
-  const truncated =
-    plainDesc.length > 120 ? plainDesc.slice(0, 120) + "..." : plainDesc;
+  const truncated = plainDesc.length > 120 ? plainDesc.slice(0, 120) + "..." : plainDesc;
   const accentColor = getBeltColor(entry.beltAtTime);
+  const typeLabel = entry.entryType === "general" ? "General" : "Training";
 
   const date = new Date(entry.createdAt).toLocaleDateString("en-US", {
     month: "short",
@@ -40,11 +40,16 @@ export default function JournalCard({
         />
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h3 className="text-fg font-medium text-sm truncate">
-              {entry.title}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-fg font-medium text-sm truncate">
+                {entry.title}
+              </h3>
+              <span className="shrink-0 whitespace-nowrap text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border border-border-strong text-fg-tertiary">
+                {typeLabel}
+              </span>
+            </div>
             <p className="text-fg-muted text-xs mt-1 line-clamp-2">
-              {truncated}
+              {truncated || "No notes yet."}
             </p>
           </div>
           <span className="text-xs text-fg-dim whitespace-nowrap shrink-0">

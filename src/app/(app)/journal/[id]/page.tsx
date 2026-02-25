@@ -121,6 +121,7 @@ export default function JournalDetailPage() {
     day: "numeric",
     year: "numeric",
   });
+  const isGeneralEntry = entry.entryType === "general";
 
   return (
     <div className="max-w-3xl">
@@ -128,14 +129,23 @@ export default function JournalDetailPage() {
 
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-fg mb-2">{entry.title}</h1>
-        <p className="text-sm text-fg-muted">{date}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-fg-muted">{date}</p>
+          <span className="shrink-0 whitespace-nowrap text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border border-border-strong text-fg-tertiary">
+            {isGeneralEntry ? "General" : "Training"}
+          </span>
+        </div>
       </div>
 
       <div className="space-y-6">
-        <Section label="Description" content={entry.description} />
-        <Section label="Techniques Covered" content={entry.highlightMoves} />
-        <Section label="What Went Right" content={entry.whatWentRight} />
-        <Section label="What to Improve" content={entry.whatToImprove} />
+        <Section label={isGeneralEntry ? "Entry" : "Description"} content={entry.description} />
+        {!isGeneralEntry && (
+          <>
+            <Section label="Techniques Covered" content={entry.highlightMoves} />
+            <Section label="What Went Right" content={entry.whatWentRight} />
+            <Section label="What to Improve" content={entry.whatToImprove} />
+          </>
+        )}
       </div>
 
       <div className="mt-8 pt-6 border-t border-border">

@@ -104,7 +104,7 @@ export default function JournalListPage() {
       {entries.length === 0 ? (
         <div className="bg-surface border border-border rounded-lg p-12 text-center">
           <p className="text-fg-muted text-sm mb-4">
-            Your journal is empty. Record your first training session!
+            Your journal is empty. Add your first training session or general note.
           </p>
           <Link
             href="/journal/new"

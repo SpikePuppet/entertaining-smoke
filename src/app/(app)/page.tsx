@@ -40,9 +40,9 @@ function PromotionRecentCard({ promotion }: { promotion: PromotionEntry }) {
 
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-fg-muted text-[11px] uppercase tracking-wide">
+            <span className="shrink-0 whitespace-nowrap text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border border-border-strong text-fg-tertiary">
               Promotion
-            </p>
+            </span>
             <div className="mt-1">
               <BeltBadge belt={promotion.belt} stripes={promotion.stripes} size="sm" />
             </div>
@@ -249,7 +249,7 @@ export default function Dashboard() {
       {recentItems.length === 0 ? (
         <div className="bg-surface border border-border rounded-lg p-8 text-center">
           <p className="text-fg-muted text-sm mb-4">
-            No entries or promotions yet. Start tracking your training!
+            No entries or promotions yet. Start tracking your training and daily context.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link

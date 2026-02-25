@@ -78,7 +78,7 @@ export async function getJournalEntry(id: string): Promise<JournalEntry | null> 
 export async function createJournalEntry(
   data: Pick<
     JournalEntry,
-    "title" | "description" | "highlightMoves" | "whatWentRight" | "whatToImprove"
+    "entryType" | "title" | "description" | "highlightMoves" | "whatWentRight" | "whatToImprove"
   >
 ): Promise<JournalEntry> {
   return request<JournalEntry>("/api/journal", {

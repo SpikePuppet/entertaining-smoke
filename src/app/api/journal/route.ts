@@ -4,14 +4,20 @@ import { errorResponse } from "@/lib/api/error-response";
 import { validateSameOrigin } from "@/lib/security/origin";
 import { mapJournalEntryRow, type JournalEntryRow } from "@/lib/supabase/mappers";
 import { createClerkSupabaseServerClient } from "@/lib/supabase/server";
+import type { JournalEntryType } from "@/lib/types";
 
 type CreateJournalEntryBody = {
+  entryType?: JournalEntryType;
   title: string;
   description?: string;
   highlightMoves?: string;
   whatWentRight?: string;
   whatToImprove?: string;
 };
+
+function isJournalEntryType(value: unknown): value is JournalEntryType {
+  return value === "training" || value === "general";
+}
 
 export async function GET() {
   const { userId } = await auth();
@@ -53,6 +59,11 @@ export async function POST(request: Request) {
     return errorResponse("Title is required.", 400);
   }
 
+  const entryType = body.entryType ?? "training";
+  if (!isJournalEntryType(entryType)) {
+    return errorResponse("Invalid journal entry type.", 400);
+  }
+
   const supabase = await createClerkSupabaseServerClient();
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
@@ -67,6 +78,7 @@ export async function POST(request: Request) {
   const payload = {
     user_id: userId,
     belt_at_time: profile?.current_belt ?? "white",
+    entry_type: entryType,
     title: body.title.trim(),
     description: body.description ?? "",
     highlight_moves: body.highlightMoves ?? "",

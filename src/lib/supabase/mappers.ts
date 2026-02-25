@@ -1,4 +1,4 @@
-import type { BeltColor, JournalEntry, PromotionEntry, UserProfile } from "@/lib/types";
+import type { BeltColor, JournalEntry, JournalEntryType, PromotionEntry, UserProfile } from "@/lib/types";
 
 export type ProfileRow = {
   id: string;
@@ -13,6 +13,7 @@ export type JournalEntryRow = {
   id: string;
   user_id: string;
   belt_at_time: string | null;
+  entry_type?: string | null;
   title: string;
   description: string;
   highlight_moves: string;
@@ -45,10 +46,13 @@ export function mapProfileRow(row: ProfileRow): UserProfile {
 }
 
 export function mapJournalEntryRow(row: JournalEntryRow): JournalEntry {
+  const entryType: JournalEntryType = row.entry_type === "general" ? "general" : "training";
+
   return {
     id: row.id,
     userId: row.user_id,
     beltAtTime: (row.belt_at_time ?? "white") as BeltColor,
+    entryType,
     title: row.title,
     description: row.description,
     highlightMoves: row.highlight_moves,

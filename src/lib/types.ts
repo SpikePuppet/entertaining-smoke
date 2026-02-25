@@ -8,6 +8,8 @@ export type BeltColor =
   | "coral-red-white"
   | "red";
 
+export type JournalEntryType = "training" | "general";
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -21,6 +23,7 @@ export interface JournalEntry {
   id: string;
   userId: string;
   beltAtTime: BeltColor;
+  entryType: JournalEntryType;
   title: string;
   description: string;
   highlightMoves: string;

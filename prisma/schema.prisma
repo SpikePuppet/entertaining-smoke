@@ -25,6 +25,7 @@ model JournalEntry {
   user           Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String   @default(dbgenerated("(current_setting('request.jwt.claims', true)::json ->> 'sub')")) @map("user_id")
   beltAtTime     String   @default("white") @map("belt_at_time")
+  entryType      String   @default("training") @map("entry_type")
   title          String
   description    String   @default("")
   highlightMoves String   @default("")  @map("highlight_moves")

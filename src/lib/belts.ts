@@ -7,6 +7,11 @@ export interface BeltDefinition {
   maxStripes: number;
 }
 
+export interface BeltRank {
+  belt: BeltColor;
+  stripes: number;
+}
+
 export const BELTS: BeltDefinition[] = [
   { color: "white", label: "White Belt", hex: "#F5F5F5", maxStripes: 4 },
   { color: "blue", label: "Blue Belt", hex: "#0047AB", maxStripes: 4 },
@@ -28,8 +33,49 @@ export const BELTS: BeltDefinition[] = [
   { color: "red", label: "Red Belt", hex: "#CC0000", maxStripes: 0 },
 ];
 
+const BELT_PRECEDENCE = new Map<BeltColor, number>(
+  BELTS.map((belt, index) => [belt.color, index])
+);
+
+export function isBeltColor(value: unknown): value is BeltColor {
+  return typeof value === "string" && BELT_PRECEDENCE.has(value as BeltColor);
+}
+
 export function getBeltDefinition(belt: BeltColor): BeltDefinition {
   return BELTS.find((b) => b.color === belt) ?? BELTS[0];
+}
+
+export function normalizeBeltRank(rank: BeltRank): BeltRank {
+  const maxStripes = getMaxStripes(rank.belt);
+  const normalizedStripes = Math.min(Math.max(Math.floor(rank.stripes), 0), maxStripes);
+  return {
+    belt: rank.belt,
+    stripes: normalizedStripes,
+  };
+}
+
+export function compareBeltRanks(a: BeltRank, b: BeltRank): number {
+  const left = normalizeBeltRank(a);
+  const right = normalizeBeltRank(b);
+
+  const leftPrecedence = BELT_PRECEDENCE.get(left.belt) ?? -1;
+  const rightPrecedence = BELT_PRECEDENCE.get(right.belt) ?? -1;
+
+  if (leftPrecedence !== rightPrecedence) {
+    return leftPrecedence - rightPrecedence;
+  }
+
+  return left.stripes - right.stripes;
+}
+
+export function getHighestBeltRank(ranks: BeltRank[]): BeltRank | null {
+  if (ranks.length === 0) {
+    return null;
+  }
+
+  return ranks
+    .map(normalizeBeltRank)
+    .reduce((highest, candidate) => (compareBeltRanks(candidate, highest) > 0 ? candidate : highest));
 }
 
 export function getBeltDisplay(belt: BeltColor, stripes: number): string {
